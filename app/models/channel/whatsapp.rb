@@ -15,7 +15,8 @@
 #
 # Indexes
 #
-#  index_channel_whatsapp_on_phone_number  (phone_number) UNIQUE
+#  index_channel_whatsapp_baileys_connection  (provider_connection) WHERE ((provider)::text = 'baileys'::text) USING gin
+#  index_channel_whatsapp_on_phone_number     (phone_number) UNIQUE
 #
 
 class Channel::Whatsapp < ApplicationRecord
