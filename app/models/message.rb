@@ -80,6 +80,9 @@ class Message < ApplicationRecord
   # when you have a temperory id in your frontend and want it echoed back via action cable
   attr_accessor :echo_id
 
+  # NOTE: Allow skipping message flooding validation for bulk operations like imports/cloning
+  attr_accessor :skip_message_flooding_validation
+
   enum message_type: { incoming: 0, outgoing: 1, activity: 2, template: 3 }
   enum content_type: {
     text: 0,
@@ -232,6 +235,7 @@ class Message < ApplicationRecord
     # Added this to cover the validation specs in messages
     # We can revisit and see if we can remove this later
     return if conversation.blank?
+    return if skip_message_flooding_validation
 
     # there are cases where automations can result in message loops, we need to prevent such cases.
     if conversation.messages.where('created_at >= ?', 1.minute.ago).count >= Limits.conversation_message_per_minute_limit
