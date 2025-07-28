@@ -5,6 +5,8 @@ import { useConfig } from 'dashboard/composables/useConfig';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
 import { useAI } from 'dashboard/composables/useAI';
 import { useAdmin } from 'dashboard/composables/useAdmin';
+import { useAlert } from 'dashboard/composables';
+import { useStore } from 'vuex';
 
 // components
 import ReplyBox from './ReplyBox.vue';
@@ -53,6 +55,7 @@ export default {
     const isPopOutReplyBox = ref(false);
     const conversationPanelRef = ref(null);
     const { isEnterprise } = useConfig();
+    const store = useStore();
 
     const keyboardEvents = {
       Escape: {
@@ -82,6 +85,7 @@ export default {
       fetchLabelSuggestions,
       conversationPanelRef,
       isAdmin,
+      store,
     };
   },
   data() {
@@ -467,6 +471,15 @@ export default {
     onCloseBaileysLinkDeviceModal() {
       this.showBaileysLinkDeviceModal = false;
     },
+    onSetupProviderConnection() {
+      this.store
+        .dispatch('inboxes/setupChannelProvider', this.inbox.id)
+        .catch(e => {
+          // eslint-disable-next-line no-console
+          console.error('Error setting up provider connection:', e);
+          useAlert('Failed to reconnect. Please try again or contact support.');
+        });
+    },
   },
 };
 </script>
@@ -493,14 +506,18 @@ export default {
                 'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.NOT_CONNECTED_CONTACT_ADMIN'
               )
         "
-        :has-action-button="isAdmin"
+        has-action-button
         :action-button-label="
-          $t(
-            'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.LINK_DEVICE'
-          )
+          isAdmin
+            ? $t(
+                'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.LINK_DEVICE'
+              )
+            : ''
         "
-        action-button-icon=""
-        @primary-action="onOpenBaileysLinkDeviceModal"
+        :action-button-icon="isAdmin ? '' : 'i-lucide-refresh-cw'"
+        @primary-action="
+          isAdmin ? onOpenBaileysLinkDeviceModal() : onSetupProviderConnection()
+        "
       />
     </template>
     <Banner

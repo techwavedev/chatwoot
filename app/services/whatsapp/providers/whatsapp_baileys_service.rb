@@ -2,7 +2,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   include BaileysHelper
 
   class MessageContentTypeNotSupported < StandardError; end
-  class MessageNotSentError < StandardError; end
+  class ProviderUnavailableError < StandardError; end
 
   DEFAULT_CLIENT_NAME = ENV.fetch('BAILEYS_PROVIDER_DEFAULT_CLIENT_NAME', nil)
   DEFAULT_URL = ENV.fetch('BAILEYS_PROVIDER_DEFAULT_URL', nil)
@@ -21,7 +21,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       }.compact.to_json
     )
 
-    process_response(response)
+    raise ProviderUnavailableError unless process_response(response)
+
+    true
   end
 
   def disconnect_channel_provider
@@ -30,7 +32,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       headers: api_headers
     )
 
-    process_response(response)
+    raise ProviderUnavailableError unless process_response(response)
+
+    true
   end
 
   def send_message(phone_number, message)
@@ -89,7 +93,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       }.to_json
     )
 
-    process_response(response)
+    raise ProviderUnavailableError unless process_response(response)
+
+    true
   end
 
   def update_presence(status)
@@ -107,7 +113,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       }.to_json
     )
 
-    process_response(response)
+    raise ProviderUnavailableError unless process_response(response)
+
+    true
   end
 
   def read_messages(phone_number, messages)
@@ -127,7 +135,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       }.to_json
     )
 
-    process_response(response)
+    raise ProviderUnavailableError unless process_response(response)
+
+    true
   end
 
   def unread_message(phone_number, message) # rubocop:disable Metrics/MethodLength
@@ -152,7 +162,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       }.to_json
     )
 
-    process_response(response)
+    raise ProviderUnavailableError unless process_response(response)
+
+    true
   end
 
   def received_messages(phone_number, messages)
@@ -172,7 +184,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       }.to_json
     )
 
-    process_response(response)
+    raise ProviderUnavailableError unless process_response(response)
+
+    true
   end
 
   private
@@ -230,7 +244,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       }.to_json
     )
 
-    raise MessageNotSentError unless process_response(response)
+    raise ProviderUnavailableError unless process_response(response)
 
     update_external_created_at(response)
     response.parsed_response.dig('data', 'key', 'id')
@@ -257,6 +271,10 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     method_names.each do |method_name|
       original_method = instance_method(method_name)
 
+      define_method("#{method_name}_without_error_handling") do |*args, &block|
+        original_method.bind_call(self, *args, &block)
+      end
+
       define_method(method_name) do |*args, &block|
         original_method.bind_call(self, *args, &block)
       rescue StandardError => e
@@ -268,6 +286,17 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def handle_channel_error
     whatsapp_channel.update_provider_connection!(connection: 'close')
+
+    return if @handling_error
+
+    @handling_error = true
+    begin
+      setup_channel_provider_without_error_handling
+    rescue StandardError => e
+      Rails.logger.error "Failed to reconnect channel after error: #{e.message}"
+    ensure
+      @handling_error = false
+    end
   end
 
   with_error_handling :setup_channel_provider,

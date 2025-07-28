@@ -111,6 +111,9 @@ class Channel::Whatsapp < ApplicationRecord
 
   def disconnect_channel_provider
     provider_service.disconnect_channel_provider
+  rescue StandardError => e
+    # NOTE: Don't prevent destruction if disconnect fails
+    Rails.logger.error "Failed to disconnect channel provider: #{e.message}"
   end
 
   def received_messages(messages, conversation)

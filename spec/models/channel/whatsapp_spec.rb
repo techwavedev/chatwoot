@@ -311,6 +311,8 @@ RSpec.describe Channel::Whatsapp do
 
         it 'destroys the channel on failure to disconnect' do
           stub_request(:delete, disconnect_url).to_return(status: 404, body: 'error message')
+          # NOTE: On failure, `setup_channel_provider` is called, so we re-stub to avoid errors
+          stub_request(:post, disconnect_url).to_return(status: 200)
 
           channel.destroy!
 

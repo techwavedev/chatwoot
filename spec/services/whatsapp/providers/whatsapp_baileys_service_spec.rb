@@ -35,7 +35,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
     end
 
     context 'when response is unsuccessful' do
-      it 'logs the error and returns false' do
+      it 'raises ProviderUnavailableError and logs the error' do
         stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
           .with(
             headers: stub_headers(whatsapp_channel),
@@ -51,12 +51,14 @@ describe Whatsapp::Providers::WhatsappBaileysService do
             body: 'error message',
             headers: {}
           )
-        allow(Rails.logger).to receive(:error).with('error message')
 
-        response = service.setup_channel_provider
+        allow(Rails.logger).to receive(:error)
 
-        expect(response).to be(false)
-        expect(Rails.logger).to have_received(:error)
+        expect do
+          service.setup_channel_provider
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+
+        expect(Rails.logger).to have_received(:error).with('error message').twice
       end
     end
   end
@@ -75,7 +77,8 @@ describe Whatsapp::Providers::WhatsappBaileysService do
     end
 
     context 'when response is unsuccessful' do
-      it 'logs the error and returns false' do
+      it 'raises ProviderUnavailableError and logs the error' do
+        # Stub the failing request
         stub_request(:delete, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
           .with(headers: stub_headers(whatsapp_channel))
           .to_return(
@@ -83,12 +86,18 @@ describe Whatsapp::Providers::WhatsappBaileysService do
             body: 'error message',
             headers: {}
           )
-        allow(Rails.logger).to receive(:error).with('error message')
 
-        response = service.disconnect_channel_provider
+        # Stub the reconnection attempt
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .to_return(status: 200)
 
-        expect(response).to be(false)
-        expect(Rails.logger).to have_received(:error)
+        allow(Rails.logger).to receive(:error)
+
+        expect do
+          service.disconnect_channel_provider
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+
+        expect(Rails.logger).to have_received(:error).with('error message')
       end
     end
   end
@@ -325,7 +334,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
     end
 
     context 'when request is unsuccessful' do
-      it 'raises MessageNotSentError' do
+      it 'raises ProviderUnavailableError' do
         stub_request(:post, request_path)
           .to_return(
             status: 400,
@@ -333,9 +342,13 @@ describe Whatsapp::Providers::WhatsappBaileysService do
             body: result_body.to_json
           )
 
+        # Stub the reconnection attempt
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .to_return(status: 200)
+
         expect do
           service.send_message(test_send_phone_number, message)
-        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::MessageNotSentError)
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
       end
     end
   end
@@ -376,26 +389,6 @@ describe Whatsapp::Providers::WhatsappBaileysService do
         expect(service.validate_provider_config?).to be(false)
         expect(Rails.logger).to have_received(:error)
       end
-
-      context 'when provider responds with 5XX' do
-        it 'updated provider connection to close' do
-          whatsapp_channel.update!(provider_connection: { 'connection' => 'open' })
-          allow(HTTParty).to receive(:post).with(
-            "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}/send-message",
-            headers: stub_headers(whatsapp_channel),
-            body: {
-              jid: test_send_jid,
-              messageContent: { text: message.content }
-            }.to_json
-          ).and_raise(HTTParty::ResponseError.new(OpenStruct.new(status_code: 500)))
-
-          expect do
-            service.send_message(test_send_phone_number, message)
-          end.to raise_error(HTTParty::ResponseError)
-
-          expect(whatsapp_channel.provider_connection['connection']).to eq('close')
-        end
-      end
     end
   end
 
@@ -410,6 +403,24 @@ describe Whatsapp::Providers::WhatsappBaileysService do
       result = service.read_messages(test_send_phone_number, [message])
 
       expect(result).to be(true)
+    end
+
+    context 'when request is unsuccessful' do
+      it 'raises ProviderUnavailableError' do
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}/read-messages")
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: { keys: [{ id: message.source_id, remoteJid: test_send_jid, fromMe: false }] }.to_json
+          ).to_return(status: 400, body: 'error message', headers: {})
+
+        # Stub the reconnection attempt
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .to_return(status: 200)
+
+        expect do
+          service.read_messages(test_send_phone_number, [message])
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+      end
     end
   end
 
@@ -436,6 +447,35 @@ describe Whatsapp::Providers::WhatsappBaileysService do
 
       expect(result).to be(true)
     end
+
+    context 'when request is unsuccessful' do
+      it 'raises ProviderUnavailableError' do
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}/chat-modify")
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              jid: test_send_jid,
+              mod: {
+                markRead: false,
+                lastMessages: [
+                  {
+                    key: { id: 'msg_123', remoteJid: test_send_jid, fromMe: false },
+                    messageTimestamp: 123
+                  }
+                ]
+              }
+            }.to_json
+          ).to_return(status: 400, body: 'error message', headers: {})
+
+        # Stub the reconnection attempt
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .to_return(status: 200)
+
+        expect do
+          service.unread_message(test_send_phone_number, message)
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+      end
+    end
   end
 
   describe '#received_messages' do
@@ -451,6 +491,26 @@ describe Whatsapp::Providers::WhatsappBaileysService do
       result = service.received_messages(test_send_phone_number, [message])
 
       expect(result).to be(true)
+    end
+
+    context 'when request is unsuccessful' do
+      it 'raises ProviderUnavailableError' do
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}/send-receipts")
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              keys: [{ id: message.source_id, remoteJid: test_send_jid, fromMe: false }]
+            }.to_json
+          ).to_return(status: 400, body: 'error message', headers: {})
+
+        # Stub the reconnection attempt
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .to_return(status: 200)
+
+        expect do
+          service.received_messages(test_send_phone_number, [message])
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+      end
     end
   end
 
@@ -505,26 +565,33 @@ describe Whatsapp::Providers::WhatsappBaileysService do
       expect(request).to have_been_requested
     end
 
-    it 'logs the error and returns false' do
-      stub_request(:patch, request_path)
-        .with(
-          headers: stub_headers(whatsapp_channel),
-          body: {
-            toJid: test_send_jid,
-            type: 'composing'
-          }.to_json
-        )
-        .to_return(
-          status: 400,
-          body: 'error message',
-          headers: {}
-        )
-      allow(Rails.logger).to receive(:error).with('error message')
+    context 'when request is unsuccessful' do
+      it 'raises ProviderUnavailableError and logs the error' do
+        stub_request(:patch, request_path)
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              toJid: test_send_jid,
+              type: 'composing'
+            }.to_json
+          )
+          .to_return(
+            status: 400,
+            body: 'error message',
+            headers: {}
+          )
 
-      response = service.toggle_typing_status(test_send_phone_number, Events::Types::CONVERSATION_TYPING_ON)
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .to_return(status: 200)
 
-      expect(response).to be(false)
-      expect(Rails.logger).to have_received(:error)
+        allow(Rails.logger).to receive(:error)
+
+        expect do
+          service.toggle_typing_status(test_send_phone_number, Events::Types::CONVERSATION_TYPING_ON)
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+
+        expect(Rails.logger).to have_received(:error).with('error message')
+      end
     end
   end
 
@@ -546,25 +613,32 @@ describe Whatsapp::Providers::WhatsappBaileysService do
       expect(request).to have_been_requested
     end
 
-    it 'logs the error and returns false' do
-      stub_request(:patch, request_path)
-        .with(
-          headers: stub_headers(whatsapp_channel),
-          body: {
-            type: 'available'
-          }.to_json
-        )
-        .to_return(
-          status: 400,
-          body: 'error message',
-          headers: {}
-        )
-      allow(Rails.logger).to receive(:error).with('error message')
+    context 'when request is unsuccessful' do
+      it 'raises ProviderUnavailableError and logs the error' do
+        stub_request(:patch, request_path)
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              type: 'available'
+            }.to_json
+          )
+          .to_return(
+            status: 400,
+            body: 'error message',
+            headers: {}
+          )
 
-      response = service.update_presence('online')
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .to_return(status: 200)
 
-      expect(response).to be(false)
-      expect(Rails.logger).to have_received(:error)
+        allow(Rails.logger).to receive(:error)
+
+        expect do
+          service.update_presence('online')
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+
+        expect(Rails.logger).to have_received(:error).with('error message')
+      end
     end
   end
 
@@ -583,6 +657,138 @@ describe Whatsapp::Providers::WhatsappBaileysService do
       whatsapp_channel.update!(provider_config: {})
 
       expect(service.send(:api_key)).to eq('key')
+    end
+  end
+
+  describe 'error handling' do
+    describe '#handle_channel_error' do
+      it 'updates provider connection to close' do
+        whatsapp_channel.update!(provider_connection: { 'connection' => 'open' })
+
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              clientName: 'chatwoot-test',
+              webhookUrl: whatsapp_channel.inbox.callback_webhook_url,
+              webhookVerifyToken: whatsapp_channel.provider_config['webhook_verify_token'],
+              includeMedia: false
+            }.to_json
+          )
+          .to_return(status: 200)
+
+        service.send(:handle_channel_error)
+
+        expect(whatsapp_channel.reload.provider_connection['connection']).to eq('close')
+      end
+
+      it 'attempts to reconnect by calling setup_channel_provider' do
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              clientName: 'chatwoot-test',
+              webhookUrl: whatsapp_channel.inbox.callback_webhook_url,
+              webhookVerifyToken: whatsapp_channel.provider_config['webhook_verify_token'],
+              includeMedia: false
+            }.to_json
+          )
+          .to_return(status: 200)
+
+        service.send(:handle_channel_error)
+
+        expect(WebMock).to have_requested(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+      end
+
+      it 'logs error and does not raise when reconnection fails' do
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              clientName: 'chatwoot-test',
+              webhookUrl: whatsapp_channel.inbox.callback_webhook_url,
+              webhookVerifyToken: whatsapp_channel.provider_config['webhook_verify_token'],
+              includeMedia: false
+            }.to_json
+          )
+          .to_return(status: 400, body: 'reconnection failed')
+
+        allow(Rails.logger).to receive(:error)
+
+        expect { service.send(:handle_channel_error) }.not_to raise_error
+
+        expect(Rails.logger).to have_received(:error).with(/Failed to reconnect channel after error/)
+      end
+
+      it 'prevents infinite loop with @handling_error flag' do
+        service.instance_variable_set(:@handling_error, true)
+
+        expect(HTTParty).not_to receive(:post)
+
+        service.send(:handle_channel_error)
+
+        expect(whatsapp_channel.reload.provider_connection['connection']).to eq('close')
+      end
+    end
+
+    describe 'error handling wrapper' do
+      context 'when send_message fails' do
+        it 'calls handle_channel_error and re-raises the error' do
+          stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}/send-message")
+            .to_return(status: 500, body: 'server error')
+
+          stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+            .to_return(status: 200)
+
+          whatsapp_channel.update!(provider_connection: { 'connection' => 'open' })
+
+          expect do
+            service.send_message(test_send_phone_number, message)
+          end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+
+          expect(whatsapp_channel.reload.provider_connection['connection']).to eq('close')
+
+          expect(WebMock).to have_requested(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+        end
+      end
+
+      context 'when setup_channel_provider fails' do
+        it 'calls handle_channel_error and re-raises the error' do
+          stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+            .to_return(status: 500, body: 'server error')
+
+          whatsapp_channel.update!(provider_connection: { 'connection' => 'open' })
+          allow(Rails.logger).to receive(:error)
+
+          expect do
+            service.setup_channel_provider
+          end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+
+          expect(whatsapp_channel.reload.provider_connection['connection']).to eq('close')
+
+          expect(Rails.logger).to have_received(:error).with(/Failed to reconnect channel after error/)
+        end
+      end
+
+      context 'when toggle_typing_status fails' do
+        it 'calls handle_channel_error and re-raises the error' do
+          stub_request(:patch, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}/presence")
+            .to_return(status: 500, body: 'server error')
+
+          stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+            .to_return(status: 200)
+
+          whatsapp_channel.update!(provider_connection: { 'connection' => 'open' })
+
+          expect do
+            service.toggle_typing_status(test_send_phone_number, Events::Types::CONVERSATION_TYPING_ON)
+          end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
+
+          expect(whatsapp_channel.reload.provider_connection['connection']).to eq('close')
+
+          expect(WebMock).to have_requested(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+        end
+      end
     end
   end
 
