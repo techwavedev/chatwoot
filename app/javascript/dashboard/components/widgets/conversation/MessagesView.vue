@@ -477,7 +477,11 @@ export default {
         .catch(e => {
           // eslint-disable-next-line no-console
           console.error('Error setting up provider connection:', e);
-          useAlert('Failed to reconnect. Please try again or contact support.');
+          useAlert(
+            this.$t(
+              'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.RECONNECT_FAILED'
+            )
+          );
         });
     },
   },

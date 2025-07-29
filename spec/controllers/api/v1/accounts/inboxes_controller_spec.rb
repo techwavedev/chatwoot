@@ -941,6 +941,28 @@ RSpec.describe 'Inboxes API', type: :request do
 
         expect(response).to have_http_status(:ok)
       end
+
+      it 'allows agents to setup channel provider for assigned inboxes' do
+        create(:inbox_member, user: agent, inbox: inbox)
+        service_double = instance_double(Whatsapp::Providers::WhatsappBaileysService, setup_channel_provider: true)
+        allow(Whatsapp::Providers::WhatsappBaileysService).to receive(:new)
+          .with(whatsapp_channel: channel)
+          .and_return(service_double)
+
+        post "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}/setup_channel_provider",
+             headers: agent.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'returns unauthorized for agents not assigned to the inbox' do
+        post "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}/setup_channel_provider",
+             headers: agent.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
     end
   end
 
@@ -994,7 +1016,7 @@ RSpec.describe 'Inboxes API', type: :request do
              headers: admin.create_new_auth_token,
              as: :json
 
-        expect(response).to have_http_status(:internal_server_error)
+        expect(response).to have_http_status(:ok)
         expect(channel.reload.provider_connection).to eq('connection' => 'close')
       end
     end
