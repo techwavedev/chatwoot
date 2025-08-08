@@ -117,7 +117,6 @@ export default {
       showVariablesMenu: false,
       newConversationModalActive: false,
       showArticleSearchPopover: false,
-      hasRecordedAudio: false,
     };
   },
   computed: {
@@ -293,6 +292,9 @@ export default {
     },
     hasAttachments() {
       return this.attachedFiles.length;
+    },
+    hasRecordedAudio() {
+      return this.attachedFiles.some(file => file.isRecordedAudio);
     },
     isRichEditorEnabled() {
       return this.isAWebWidgetInbox || this.isAnEmailChannel;
@@ -898,7 +900,9 @@ export default {
     },
     onFinishRecorder(file) {
       this.recordingAudioState = 'stopped';
-      this.hasRecordedAudio = true;
+
+      this.removeRecordedAudio();
+
       // Added a new key isRecordedAudio to the file to find it's and recorded audio
       // Because to filter and show only non recorded audio and other attachments
       const autoRecordedFile = {
@@ -922,6 +926,10 @@ export default {
       });
     },
     attachFile({ blob, file }) {
+      if (file?.isRecordedAudio) {
+        this.removeRecordedAudio();
+      }
+
       const reader = new FileReader();
       reader.readAsDataURL(file.file);
       reader.onloadend = () => {
@@ -1094,8 +1102,10 @@ export default {
       this.recordingAudioDurationText = '00:00';
       this.isRecordingAudio = false;
       this.recordingAudioState = '';
-      this.hasRecordedAudio = false;
       // Only clear the recorded audio when we click toggle button.
+      this.removeRecordedAudio();
+    },
+    removeRecordedAudio() {
       this.attachedFiles = this.attachedFiles.filter(
         file => !file?.isRecordedAudio
       );
