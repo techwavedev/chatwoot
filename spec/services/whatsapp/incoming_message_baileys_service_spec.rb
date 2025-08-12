@@ -344,6 +344,16 @@ describe Whatsapp::IncomingMessageBaileysService do
             expect(conversation.contact.name).to eq('5511912345678')
           end
 
+          it 'creates contact with phone number as name on incoming message if pushName is not present' do
+            raw_message[:pushName] = nil
+            create(:account_user, account: inbox.account)
+
+            described_class.new(inbox: inbox, params: params).perform
+
+            conversation = inbox.conversations.last
+            expect(conversation.contact.name).to eq('5511912345678')
+          end
+
           it 'creates a message on an existing conversation' do
             contact = create(:contact, account: inbox.account, name: 'John Doe')
             contact_inbox = create(:contact_inbox, inbox: inbox, contact: contact, source_id: '5511912345678')

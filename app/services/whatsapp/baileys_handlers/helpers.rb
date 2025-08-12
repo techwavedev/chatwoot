@@ -128,7 +128,7 @@ module Whatsapp::BaileysHandlers::Helpers # rubocop:disable Metrics/ModuleLength
   def contact_name
     # NOTE: `verifiedBizName` is only available for business accounts and has a higher priority than `pushName`.
     name = @raw_message[:verifiedBizName].presence || @raw_message[:pushName]
-    return name if self_message? || incoming?
+    return name if name.presence && (self_message? || incoming?)
 
     phone_number_from_jid
   end
