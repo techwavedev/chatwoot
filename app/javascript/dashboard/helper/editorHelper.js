@@ -38,16 +38,6 @@ export function cleanSignature(signature) {
 }
 
 /**
- * Adds the signature delimiter to the beginning of the signature.
- *
- * @param {string} signature - The signature to add the delimiter to.
- * @returns {string} - The signature with the delimiter added.
- */
-function appendDelimiter(signature) {
-  return `${SIGNATURE_DELIMITER}\n\n${cleanSignature(signature)}`;
-}
-
-/**
  * Check if there's an unedited signature at the end of the body
  * If there is, return the index of the signature, If there isn't, return -1
  *
@@ -72,16 +62,28 @@ export function findSignatureInBody(body, signature) {
  *
  * @param {string} body - The body to append the signature to.
  * @param {string} signature - The signature to append.
+ * @param {Object} settings - The signature settings (position, separator).
  * @returns {string} - The body with the signature appended.
  */
-export function appendSignature(body, signature) {
+export function appendSignature(body, signature, settings = {}) {
+  const position = settings.position || 'top';
+  const separator = settings.separator || 'blank';
   const cleanedSignature = cleanSignature(signature);
   // if signature is already present, return body
-  if (findSignatureInBody(body, cleanedSignature) > -1) {
+  if (findSignatureInBody(body, cleanedSignature).index > -1) {
     return body;
   }
 
-  return `${body.trimEnd()}\n\n${appendDelimiter(cleanedSignature)}`;
+  const delimiter =
+    {
+      blank: '\n\n',
+      '--': '\n\n--\n\n',
+    }[separator] || separator;
+
+  if (position === 'top') {
+    return `${cleanedSignature}${delimiter}${body.trimStart()}`;
+  }
+  return `${body.trimEnd()}${delimiter}${cleanedSignature}`;
 }
 
 /**
