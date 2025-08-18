@@ -184,6 +184,7 @@ Rails.application.routes.draw do
             post :setup_channel_provider, on: :member
             post :disconnect_channel_provider, on: :member
             delete :avatar, on: :member
+            post :on_whatsapp, on: :member
           end
           resources :inbox_members, only: [:create, :show], param: :inbox_id do
             collection do

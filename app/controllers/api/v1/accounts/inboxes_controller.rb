@@ -93,6 +93,20 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
     render status: :ok, json: { message: I18n.t('messages.inbox_deletetion_response') }
   end
 
+  def on_whatsapp
+    params.require(:phone_number)
+    phone_number = params[:phone_number]
+    channel = @inbox.channel
+
+    unless channel.respond_to?(:on_whatsapp)
+      render json: { error: 'Channel does not support whatsapp check' }, status: :unprocessable_entity and return
+    end
+
+    response = channel.on_whatsapp(phone_number)
+
+    render json: response, status: :ok
+  end
+
   private
 
   def fetch_inbox

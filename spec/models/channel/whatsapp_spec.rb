@@ -295,6 +295,32 @@ RSpec.describe Channel::Whatsapp do
     end
   end
 
+  describe '#on_whatsapp' do
+    let(:channel) { create(:channel_whatsapp, provider: 'baileys', validate_provider_config: false, sync_templates: false) }
+    let(:conversation) { create(:conversation) }
+    let(:phone_number) { '+123456789' }
+
+    it 'calls provider service method' do
+      provider_double = instance_double(Whatsapp::Providers::WhatsappBaileysService, on_whatsapp: nil)
+      allow(provider_double).to receive(:on_whatsapp).with(phone_number)
+      allow(Whatsapp::Providers::WhatsappBaileysService).to receive(:new)
+        .with(whatsapp_channel: channel)
+        .and_return(provider_double)
+
+      channel.on_whatsapp(phone_number)
+
+      expect(provider_double).to have_received(:on_whatsapp)
+    end
+
+    it 'does not call method if provider service does not implement it' do
+      channel.update!(provider: 'whatsapp_cloud')
+
+      expect do
+        channel.on_whatsapp(phone_number)
+      end.not_to raise_error
+    end
+  end
+
   describe 'callbacks' do
     describe '#disconnect_channel_provider' do
       context 'when provider is baileys' do

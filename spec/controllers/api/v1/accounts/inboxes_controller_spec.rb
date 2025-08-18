@@ -1021,4 +1021,71 @@ RSpec.describe 'Inboxes API', type: :request do
       end
     end
   end
+
+  describe 'POST /api/v1/accounts/:account_id/inboxes/:id/on_whatsapp' do
+    let(:channel) { create(:channel_whatsapp, account: account, provider: 'baileys', validate_provider_config: false) }
+    let(:inbox) { channel.inbox }
+
+    context 'when unauthenticated' do
+      it 'returns unauthorized' do
+        post "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}/on_whatsapp"
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'when authenticated' do
+      it 'returns unprocessable entity when channel does not support on_whatsapp' do
+        inbox = create(:inbox, account: account)
+
+        post "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}/on_whatsapp",
+             headers: admin.create_new_auth_token,
+             params: { phone_number: '+123456789' },
+             as: :json
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body['error']).to eq('Channel does not support whatsapp check')
+      end
+
+      it 'returns unprocessable entity when phone_number is not passed' do
+        inbox = create(:inbox, account: account)
+
+        post "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}/on_whatsapp",
+             headers: admin.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body['error']).to eq('param is missing or the value is empty: phone_number')
+      end
+
+      it 'calls on_whatsapp when supported and returns provider response' do
+        service_double = instance_double(Whatsapp::Providers::WhatsappBaileysService,
+                                         on_whatsapp: { jid: '123456789@s.whatsapp.net', exists: true, lid: '123@lid' })
+        allow(Whatsapp::Providers::WhatsappBaileysService).to receive(:new)
+          .with(whatsapp_channel: channel)
+          .and_return(service_double)
+
+        post "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}/on_whatsapp",
+             headers: admin.create_new_auth_token,
+             params: { phone_number: '+123456789' },
+             as: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'calls on_whatsapp when supported and returns default response on no response from provider' do
+        service_double = instance_double(Whatsapp::Providers::WhatsappBaileysService, on_whatsapp: nil)
+        allow(Whatsapp::Providers::WhatsappBaileysService).to receive(:new)
+          .with(whatsapp_channel: channel)
+          .and_return(service_double)
+
+        post "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}/on_whatsapp",
+             headers: admin.create_new_auth_token,
+             params: { phone_number: '+123456789' },
+             as: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
+  end
 end

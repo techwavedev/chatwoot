@@ -189,6 +189,22 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     true
   end
 
+  def on_whatsapp(phone_number)
+    @phone_number = phone_number
+
+    response = HTTParty.post(
+      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/on-whatsapp",
+      headers: api_headers,
+      body: {
+        jids: [remote_jid]
+      }.to_json
+    )
+
+    raise ProviderUnavailableError unless process_response(response)
+
+    response.parsed_response&.first || { 'jid' => remote_jid, 'exists' => false, 'lid' => nil }
+  end
+
   private
 
   def provider_url
@@ -255,6 +271,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     response.success?
   end
 
+  # FIXME: Make this a function with argument, instead of using instance variable
   def remote_jid
     "#{@phone_number.delete('+')}@s.whatsapp.net"
   end
@@ -306,5 +323,6 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
                       :update_presence,
                       :read_messages,
                       :unread_message,
-                      :received_messages
+                      :received_messages,
+                      :on_whatsapp
 end

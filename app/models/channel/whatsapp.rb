@@ -122,6 +122,12 @@ class Channel::Whatsapp < ApplicationRecord
     provider_service.received_messages(conversation.contact.phone_number, messages)
   end
 
+  def on_whatsapp(phone_number)
+    return unless provider_service.respond_to?(:on_whatsapp)
+
+    provider_service.on_whatsapp(phone_number)
+  end
+
   delegate :setup_channel_provider, to: :provider_service
   delegate :send_message, to: :provider_service
   delegate :send_template, to: :provider_service
