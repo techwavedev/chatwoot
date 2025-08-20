@@ -56,6 +56,9 @@ Rails.application.routes.draw do
               member do
                 post :playground
               end
+              collection do
+                get :tools
+              end
               resources :inboxes, only: [:index, :create, :destroy], param: :inbox_id
               resources :scenarios
             end
@@ -184,6 +187,7 @@ Rails.application.routes.draw do
             post :setup_channel_provider, on: :member
             post :disconnect_channel_provider, on: :member
             delete :avatar, on: :member
+            post :sync_templates, on: :member
             post :on_whatsapp, on: :member
           end
           resources :inbox_members, only: [:create, :show], param: :inbox_id do
@@ -214,6 +218,15 @@ Rails.application.routes.draw do
                 patch :update
               end
             end
+          end
+
+          # Assignment V2 Routes
+          resources :assignment_policies do
+            resources :inboxes, only: [:index, :create, :destroy], module: :assignment_policies
+          end
+
+          resources :inboxes, only: [] do
+            resource :assignment_policy, only: [:show, :create, :destroy], module: :inboxes
           end
 
           namespace :twitter do
@@ -289,6 +302,8 @@ Rails.application.routes.draw do
             member do
               patch :archive
               delete :logo
+              post :send_instructions
+              get :ssl_status
             end
             resources :categories
             resources :articles do
@@ -422,7 +437,7 @@ Rails.application.routes.draw do
         resources :agent_bots, only: [:index, :create, :show, :update, :destroy] do
           delete :avatar, on: :member
         end
-        resources :accounts, only: [:create, :show, :update, :destroy] do
+        resources :accounts, only: [:index, :create, :show, :update, :destroy] do
           resources :account_users, only: [:index, :create] do
             collection do
               delete :destroy
@@ -516,6 +531,7 @@ Rails.application.routes.draw do
   get '.well-known/assetlinks.json' => 'android_app#assetlinks'
   get '.well-known/apple-app-site-association' => 'apple_app#site_association'
   get '.well-known/microsoft-identity-association.json' => 'microsoft#identity_association'
+  get '.well-known/cf-custom-hostname-challenge/:id', to: 'custom_domains#verify'
 
   # ----------------------------------------------------------------------
   # Internal Monitoring Routes
