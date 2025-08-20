@@ -160,6 +160,11 @@ class Channel::Whatsapp < ApplicationRecord
   end
 
   def teardown_webhooks
+    # NOTE: Guard against double execution during destruction due to the
+    # `has_one :inbox, dependent: :destroy` relationship which will trigger this callback circularly
+    return if @webhook_teardown_initiated
+
+    @webhook_teardown_initiated = true
     Whatsapp::WebhookTeardownService.new(self).perform
   end
 end
