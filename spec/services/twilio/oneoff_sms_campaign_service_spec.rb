@@ -78,16 +78,16 @@ describe Twilio::OneoffSmsCampaignService do
 
       error = Twilio::REST::TwilioError.new("The 'To' number #{contact_error.phone_number} is not a valid phone number.")
 
-      allow(twilio_messages).to receive(:create).and_return(nil)
+      allow(twilio_messages).to receive(:create!).and_return(nil)
 
-      expect(twilio_messages).to receive(:create).with(
+      expect(twilio_messages).to receive(:create!).with(
         body: campaign.message,
         messaging_service_sid: twilio_sms.messaging_service_sid,
         to: contact_error.phone_number,
         status_callback: 'http://localhost:3000/twilio/delivery_status'
       ).and_raise(error)
 
-      expect(twilio_messages).to receive(:create).with(
+      expect(twilio_messages).to receive(:create!).with(
         body: campaign.message,
         messaging_service_sid: twilio_sms.messaging_service_sid,
         to: contact_success.phone_number,
