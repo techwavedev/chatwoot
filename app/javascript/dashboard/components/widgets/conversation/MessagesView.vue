@@ -4,6 +4,9 @@ import { ref, provide } from 'vue';
 import { useConfig } from 'dashboard/composables/useConfig';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
 import { useAI } from 'dashboard/composables/useAI';
+import { useAdmin } from 'dashboard/composables/useAdmin';
+import { useAlert } from 'dashboard/composables';
+import { useStore } from 'vuex';
 
 // components
 import ReplyBox from './ReplyBox.vue';
@@ -35,6 +38,7 @@ import { REPLY_POLICY } from 'shared/constants/links';
 import wootConstants from 'dashboard/constants/globals';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
+import WhatsappBaileysLinkDeviceModal from '../../../routes/dashboard/settings/inbox/components/WhatsappBaileysLinkDeviceModal.vue';
 
 export default {
   components: {
@@ -43,12 +47,15 @@ export default {
     Banner,
     ConversationLabelSuggestion,
     Spinner,
+    WhatsappBaileysLinkDeviceModal,
   },
   mixins: [inboxMixin],
   setup() {
+    const { isAdmin } = useAdmin();
     const isPopOutReplyBox = ref(false);
     const conversationPanelRef = ref(null);
     const { isEnterprise } = useConfig();
+    const store = useStore();
 
     const keyboardEvents = {
       Escape: {
@@ -77,6 +84,8 @@ export default {
       fetchIntegrationsIfRequired,
       fetchLabelSuggestions,
       conversationPanelRef,
+      isAdmin,
+      store,
     };
   },
   data() {
@@ -88,6 +97,7 @@ export default {
       isProgrammaticScroll: false,
       messageSentSinceOpened: false,
       labelSuggestions: [],
+      showBaileysLinkDeviceModal: false,
     };
   },
 
@@ -98,6 +108,9 @@ export default {
       listLoadingStatus: 'getAllMessagesLoaded',
       currentAccountId: 'getCurrentAccountId',
     }),
+    currentInbox() {
+      return this.$store.getters['inboxes/getInbox'](this.currentChat.inbox_id);
+    },
     isOpen() {
       return this.currentChat?.status === wootConstants.STATUS_TYPE.OPEN;
     },
@@ -241,6 +254,9 @@ export default {
         !this.is360DialogWhatsAppChannel;
 
       return { incoming, outgoing };
+    },
+    inboxProviderConnection() {
+      return this.currentInbox.provider_connection?.connection;
     },
   },
 
@@ -437,12 +453,77 @@ export default {
     makeMessagesRead() {
       this.$store.dispatch('markMessagesRead', { id: this.currentChat.id });
     },
+    getInReplyToMessage(parentMessage) {
+      if (!parentMessage) return {};
+      const inReplyToMessageId = parentMessage.content_attributes?.in_reply_to;
+      if (!inReplyToMessageId) return {};
+
+      return this.currentChat?.messages.find(message => {
+        if (message.id === inReplyToMessageId) {
+          return true;
+        }
+        return false;
+      });
+    },
+    onOpenBaileysLinkDeviceModal() {
+      this.showBaileysLinkDeviceModal = true;
+    },
+    onCloseBaileysLinkDeviceModal() {
+      this.showBaileysLinkDeviceModal = false;
+    },
+    onSetupProviderConnection() {
+      this.store
+        .dispatch('inboxes/setupChannelProvider', this.inbox.id)
+        .catch(e => {
+          // eslint-disable-next-line no-console
+          console.error('Error setting up provider connection:', e);
+          useAlert(
+            this.$t(
+              'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.RECONNECT_FAILED'
+            )
+          );
+        });
+    },
   },
 };
 </script>
 
 <template>
   <div class="flex flex-col justify-between flex-grow h-full min-w-0 m-0">
+    <template v-if="isAWhatsAppBaileysChannel">
+      <WhatsappBaileysLinkDeviceModal
+        v-if="showBaileysLinkDeviceModal"
+        :show="showBaileysLinkDeviceModal"
+        :on-close="onCloseBaileysLinkDeviceModal"
+        :inbox="currentInbox"
+      />
+      <Banner
+        v-if="inboxProviderConnection !== 'open'"
+        color-scheme="alert"
+        class="mt-2 mx-2 rounded-lg overflow-hidden"
+        :banner-message="
+          isAdmin
+            ? $t(
+                'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.NOT_CONNECTED'
+              )
+            : $t(
+                'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.NOT_CONNECTED_CONTACT_ADMIN'
+              )
+        "
+        has-action-button
+        :action-button-label="
+          isAdmin
+            ? $t(
+                'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.LINK_DEVICE'
+              )
+            : ''
+        "
+        :action-button-icon="isAdmin ? '' : 'i-lucide-refresh-cw'"
+        @primary-action="
+          isAdmin ? onOpenBaileysLinkDeviceModal() : onSetupProviderConnection()
+        "
+      />
+    </template>
     <Banner
       v-if="!currentChat.can_reply"
       color-scheme="alert"

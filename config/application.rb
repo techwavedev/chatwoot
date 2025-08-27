@@ -64,6 +64,8 @@ module Chatwoot
 
     # Disable PDF/video preview generation as we don't use them
     config.active_storage.previewers = []
+
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new($stdout) if defined?(Rails::Console)
   end
 
   def self.config

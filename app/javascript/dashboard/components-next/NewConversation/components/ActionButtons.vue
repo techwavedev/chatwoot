@@ -15,6 +15,7 @@ import WhatsAppOptions from './WhatsAppOptions.vue';
 const props = defineProps({
   attachedFiles: { type: Array, default: () => [] },
   isWhatsappInbox: { type: Boolean, default: false },
+  isWhatsappBaileysInbox: { type: Boolean, default: false },
   isEmailOrWebWidgetInbox: { type: Boolean, default: false },
   isTwilioSmsInbox: { type: Boolean, default: false },
   messageTemplates: { type: Array, default: () => [] },
@@ -218,7 +219,7 @@ useKeyboardEvents(keyboardEvents);
         @click="emit('discard')"
       />
       <Button
-        v-if="!isWhatsappInbox"
+        v-if="!isWhatsappInbox || isWhatsappBaileysInbox"
         :label="sendButtonLabel"
         size="sm"
         class="!text-xs font-medium"
