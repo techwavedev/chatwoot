@@ -13,6 +13,83 @@ describe Whatsapp::Providers::WhatsappBaileysService do
     stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_CLIENT_NAME', 'chatwoot-test')
   end
 
+  describe '.status' do
+    context 'when DEFAULT_URL or DEFAULT_API_KEY are missing' do
+      it 'raises ProviderUnavailableError when DEFAULT_URL is blank' do
+        stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_URL', '')
+        stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_API_KEY', 'test_key')
+
+        expect do
+          described_class.status
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError,
+                           'Missing BAILEYS_PROVIDER_DEFAULT_URL or BAILEYS_PROVIDER_DEFAULT_API_KEY setup')
+      end
+
+      it 'raises ProviderUnavailableError when DEFAULT_API_KEY is blank' do
+        stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_URL', 'http://test.com')
+        stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_API_KEY', '')
+
+        expect do
+          described_class.status
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError,
+                           'Missing BAILEYS_PROVIDER_DEFAULT_URL or BAILEYS_PROVIDER_DEFAULT_API_KEY setup')
+      end
+
+      it 'raises ProviderUnavailableError when both are blank' do
+        stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_URL', nil)
+        stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_API_KEY', nil)
+
+        expect do
+          described_class.status
+        end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError,
+                           'Missing BAILEYS_PROVIDER_DEFAULT_URL or BAILEYS_PROVIDER_DEFAULT_API_KEY setup')
+      end
+    end
+
+    context 'when DEFAULT_URL and DEFAULT_API_KEY are present' do
+      before do
+        stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_URL', 'http://test.com')
+        stub_const('Whatsapp::Providers::WhatsappBaileysService::DEFAULT_API_KEY', 'test_key')
+      end
+
+      context 'when response is successful' do
+        it 'returns the status response with symbolized keys' do
+          stub_request(:get, 'http://test.com/status')
+            .with(headers: { 'x-api-key' => 'test_key' })
+            .to_return(
+              status: 200,
+              headers: { 'Content-Type' => 'application/json' },
+              body: { packageInfo: { version: '1.0.0' } }.to_json
+            )
+
+          result = described_class.status
+
+          expect(result).to eq({ packageInfo: { version: '1.0.0' } })
+        end
+      end
+
+      context 'when response is unsuccessful' do
+        it 'logs the error and raises ProviderUnavailableError' do
+          stub_request(:get, 'http://test.com/status')
+            .with(headers: { 'x-api-key' => 'test_key' })
+            .to_return(
+              status: 500,
+              body: 'Internal Server Error',
+              headers: {}
+            )
+
+          allow(Rails.logger).to receive(:error)
+
+          expect do
+            described_class.status
+          end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError, 'Baileys API is unavailable')
+
+          expect(Rails.logger).to have_received(:error).with('Internal Server Error')
+        end
+      end
+    end
+  end
+
   describe '#setup_channel_provider' do
     context 'when response is successful' do
       it 'calls the connection endpoint' do
