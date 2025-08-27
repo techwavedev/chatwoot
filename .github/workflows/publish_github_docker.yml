@@ -40,6 +40,16 @@ jobs:
           rm -rf enterprise
           rm -rf spec/enterprise
 
+      - name: Update version in app.yml
+        run: |
+          if [[ "$GIT_REF" =~ ^v(.+)$ ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            echo "Updating version to: $VERSION"
+            sed -i "s/version: '.*'/version: '$VERSION'/" config/app.yml
+          else
+            echo "No version tag found, keeping existing version"
+          fi
+
       - name: Set Docker Tags
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
