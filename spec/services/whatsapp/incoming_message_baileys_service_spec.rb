@@ -146,6 +146,9 @@ describe Whatsapp::IncomingMessageBaileysService do
     end
 
     context 'when processing messages.upsert event' do
+      # NOTE: We always try fetching profile picture for new contacts on messages.upsert, so we must stub this request.
+      before { stub_profile_pic_fetch }
+
       let(:timestamp) { Time.current.to_i }
       let(:raw_message) do
         {
@@ -174,6 +177,46 @@ describe Whatsapp::IncomingMessageBaileysService do
 
         expect(message).to be_present
         expect(message.content_attributes[:external_created_at]).to eq(timestamp)
+      end
+
+      context 'when updating contact avatar' do
+        it 'enqueues avatar job when profile picture is available' do
+          stub_profile_pic_fetch('https://example.com/avatar.jpg')
+
+          described_class.new(inbox: inbox, params: params).perform
+
+          conversation = inbox.conversations.last
+          contact = conversation.contact
+
+          expect(Avatar::AvatarFromUrlJob).to have_been_enqueued.with(contact, 'https://example.com/avatar.jpg')
+        end
+
+        it 'does not enqueue avatar job when contact already has avatar attached' do
+          stub_profile_pic_fetch('https://example.com/avatar.jpg')
+          contact = create(:contact, account: inbox.account, name: 'John Doe', phone_number: '+5511912345678')
+          contact.avatar.attach(io: Rails.root.join('spec/assets/avatar.png').open, filename: 'avatar.png', content_type: 'image/png')
+
+          described_class.new(inbox: inbox, params: params).perform
+
+          expect(Avatar::AvatarFromUrlJob).not_to have_been_enqueued
+        end
+
+        it 'does not enqueue avatar job when profile picture is not available' do
+          described_class.new(inbox: inbox, params: params).perform
+
+          expect(Avatar::AvatarFromUrlJob).not_to have_been_enqueued
+        end
+
+        it 'logs error and does not enqueue avatar job when profile picture request fails' do
+          allow(Rails.logger).to receive(:error)
+          stub_request(:get, /profile-picture-url/)
+            .to_raise(StandardError.new('Profile picture request failed'))
+
+          described_class.new(inbox: inbox, params: params).perform
+
+          expect(Avatar::AvatarFromUrlJob).not_to have_been_enqueued
+          expect(Rails.logger).to have_received(:error).with('Failed to fetch profile picture for 5511912345678: Profile picture request failed')
+        end
       end
 
       context 'when message type is unsupported' do
@@ -828,5 +871,13 @@ describe Whatsapp::IncomingMessageBaileysService do
     allow(Down).to receive(:download)
       .with('https://baileys.api/media/msg_123', headers: inbox.channel.api_headers)
       .and_return(StringIO.new('Media data'))
+  end
+
+  def stub_profile_pic_fetch(url = nil)
+    stub_request(:get, /profile-picture-url/)
+      .to_return(
+        status: 200,
+        body: { data: { profilePictureUrl: url } }.to_json
+      )
   end
 end

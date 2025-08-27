@@ -55,6 +55,7 @@ module Whatsapp::BaileysHandlers::MessagesUpsert
     @contact = contact_inbox.contact
 
     @contact.update!(name: push_name) if @contact.name == source_id
+    try_update_contact_avatar
   end
 
   def handle_create_message
