@@ -94,7 +94,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     process_response(response)
   end
 
-  def toggle_typing_status(phone_number, typing_status)
+  def toggle_typing_status(typing_status, phone_number:, **)
     @phone_number = phone_number
     status_map = {
       Events::Types::CONVERSATION_TYPING_ON => 'composing',
@@ -136,7 +136,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     true
   end
 
-  def read_messages(phone_number, messages)
+  def read_messages(messages, phone_number:, **)
     @phone_number = phone_number
 
     response = HTTParty.post(
@@ -319,12 +319,12 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     method_names.each do |method_name|
       original_method = instance_method(method_name)
 
-      define_method("#{method_name}_without_error_handling") do |*args, &block|
-        original_method.bind_call(self, *args, &block)
+      define_method("#{method_name}_without_error_handling") do |*args, **kwargs, &block|
+        original_method.bind_call(self, *args, **kwargs, &block)
       end
 
-      define_method(method_name) do |*args, &block|
-        original_method.bind_call(self, *args, &block)
+      define_method(method_name) do |*args, **kwargs, &block|
+        original_method.bind_call(self, *args, **kwargs, &block)
       rescue StandardError => e
         handle_channel_error
         raise e

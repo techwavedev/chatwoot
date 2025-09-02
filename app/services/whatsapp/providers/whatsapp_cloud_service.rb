@@ -71,8 +71,8 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
   end
 
   # TODO: See if we can unify the API versions and for both paths and make it consistent with out facebook app API versions
-  def phone_id_path
-    "#{api_base_path}/v13.0/#{whatsapp_channel.provider_config['phone_number_id']}"
+  def phone_id_path(version = 'v13.0')
+    "#{api_base_path}/#{version}/#{whatsapp_channel.provider_config['phone_number_id']}"
   end
 
   def business_account_path
@@ -180,5 +180,42 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
     )
 
     process_response(response, message)
+  end
+
+  def toggle_typing_status(typing_status, last_message:, **)
+    return false unless [Events::Types::CONVERSATION_TYPING_ON, Events::Types::CONVERSATION_RECORDING].include?(typing_status)
+
+    response = HTTParty.post(
+      "#{phone_id_path('v23.0')}/messages",
+      headers: api_headers,
+      body: {
+        messaging_product: 'whatsapp',
+        message_id: last_message.source_id,
+        # NOTE: API currently only supports "typing", no "recording" status.
+        typing_indicator: { type: 'text' }
+      }.to_json
+    )
+
+    Rails.logger.error(response.parsed_response) unless response.success?
+
+    response.success?
+  end
+
+  def read_messages(messages, **)
+    # NOTE: Marking the last message as read automatically applies to all previous ones.
+    message = messages.last
+    response = HTTParty.post(
+      "#{phone_id_path('v23.0')}/messages",
+      headers: api_headers,
+      body: {
+        messaging_product: 'whatsapp',
+        message_id: message.source_id,
+        status: 'read'
+      }.to_json
+    )
+
+    Rails.logger.error(response.parsed_response) unless response.success?
+
+    response.success?
   end
 end

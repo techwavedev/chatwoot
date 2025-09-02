@@ -84,7 +84,8 @@ class Channel::Whatsapp < ApplicationRecord
   def toggle_typing_status(typing_status, conversation:)
     return unless provider_service.respond_to?(:toggle_typing_status)
 
-    provider_service.toggle_typing_status(conversation.contact.phone_number, typing_status)
+    last_message = conversation.messages.last
+    provider_service.toggle_typing_status(typing_status, last_message: last_message, phone_number: conversation.contact.phone_number)
   end
 
   def update_presence(status)
@@ -98,7 +99,7 @@ class Channel::Whatsapp < ApplicationRecord
     # NOTE: This is the default behavior, so `mark_as_read` being `nil` is the same as `true`.
     return if provider_config&.dig('mark_as_read') == false
 
-    provider_service.read_messages(conversation.contact.phone_number, messages)
+    provider_service.read_messages(messages, phone_number: conversation.contact.phone_number)
   end
 
   def unread_conversation(conversation)

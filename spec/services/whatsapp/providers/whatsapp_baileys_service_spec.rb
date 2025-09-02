@@ -477,7 +477,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
           body: { keys: [{ id: message.source_id, remoteJid: test_send_jid, fromMe: false }] }.to_json
         ).to_return(status: 200, body: '', headers: {})
 
-      result = service.read_messages(test_send_phone_number, [message])
+      result = service.read_messages([message], phone_number: test_send_phone_number)
 
       expect(result).to be(true)
     end
@@ -495,7 +495,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
           .to_return(status: 200)
 
         expect do
-          service.read_messages(test_send_phone_number, [message])
+          service.read_messages([message], phone_number: test_send_phone_number)
         end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
       end
     end
@@ -605,7 +605,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
                 )
                 .to_return(status: 200)
 
-      service.toggle_typing_status(test_send_phone_number, Events::Types::CONVERSATION_TYPING_ON)
+      service.toggle_typing_status(Events::Types::CONVERSATION_TYPING_ON, phone_number: test_send_phone_number)
 
       expect(request).to have_been_requested
     end
@@ -621,7 +621,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
                 )
                 .to_return(status: 200)
 
-      service.toggle_typing_status(test_send_phone_number, Events::Types::CONVERSATION_RECORDING)
+      service.toggle_typing_status(Events::Types::CONVERSATION_RECORDING, phone_number: test_send_phone_number)
 
       expect(request).to have_been_requested
     end
@@ -637,7 +637,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
                 )
                 .to_return(status: 200)
 
-      service.toggle_typing_status(test_send_phone_number, Events::Types::CONVERSATION_TYPING_OFF)
+      service.toggle_typing_status(Events::Types::CONVERSATION_TYPING_OFF, phone_number: test_send_phone_number)
 
       expect(request).to have_been_requested
     end
@@ -664,7 +664,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
         allow(Rails.logger).to receive(:error)
 
         expect do
-          service.toggle_typing_status(test_send_phone_number, Events::Types::CONVERSATION_TYPING_ON)
+          service.toggle_typing_status(Events::Types::CONVERSATION_TYPING_ON, phone_number: test_send_phone_number)
         end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
 
         expect(Rails.logger).to have_received(:error).with('error message')
@@ -916,7 +916,7 @@ describe Whatsapp::Providers::WhatsappBaileysService do
           whatsapp_channel.update!(provider_connection: { 'connection' => 'open' })
 
           expect do
-            service.toggle_typing_status(test_send_phone_number, Events::Types::CONVERSATION_TYPING_ON)
+            service.toggle_typing_status(Events::Types::CONVERSATION_TYPING_ON, phone_number: test_send_phone_number)
           end.to raise_error(Whatsapp::Providers::WhatsappBaileysService::ProviderUnavailableError)
 
           expect(whatsapp_channel.reload.provider_connection['connection']).to eq('close')

@@ -186,7 +186,7 @@ RSpec.describe Channel::Whatsapp do
     it 'calls provider service method' do
       provider_double = instance_double(Whatsapp::Providers::WhatsappBaileysService, toggle_typing_status: nil)
       allow(provider_double).to receive(:toggle_typing_status)
-        .with(conversation.contact.phone_number, Events::Types::CONVERSATION_TYPING_ON)
+        .with(Events::Types::CONVERSATION_TYPING_ON, phone_number: conversation.contact.phone_number)
       allow(Whatsapp::Providers::WhatsappBaileysService).to receive(:new)
         .with(whatsapp_channel: channel)
         .and_return(provider_double)
@@ -246,7 +246,7 @@ RSpec.describe Channel::Whatsapp do
 
     it 'calls provider service method' do
       provider_double = instance_double(Whatsapp::Providers::WhatsappBaileysService, read_messages: nil)
-      allow(provider_double).to receive(:read_messages).with([message], conversation.contact.phone_number)
+      allow(provider_double).to receive(:read_messages).with([message], phone_number: conversation.contact.phone_number)
       allow(Whatsapp::Providers::WhatsappBaileysService).to receive(:new)
         .with(whatsapp_channel: channel)
         .and_return(provider_double)
@@ -259,7 +259,7 @@ RSpec.describe Channel::Whatsapp do
     it 'call method when the provider config mark_as_read is nil' do
       channel.update!(provider_config: {})
       provider_double = instance_double(Whatsapp::Providers::WhatsappBaileysService, read_messages: nil)
-      allow(provider_double).to receive(:read_messages).with([message], conversation.contact.phone_number)
+      allow(provider_double).to receive(:read_messages).with([message], phone_number: conversation.contact.phone_number)
       allow(Whatsapp::Providers::WhatsappBaileysService).to receive(:new)
         .with(whatsapp_channel: channel)
         .and_return(provider_double)
@@ -270,7 +270,7 @@ RSpec.describe Channel::Whatsapp do
     end
 
     it 'does not call method if provider service does not implement it' do
-      channel.update!(provider: 'whatsapp_cloud')
+      channel.update!(provider: 'default')
 
       expect do
         channel.read_messages([message], conversation: conversation)
