@@ -322,6 +322,7 @@ describe Whatsapp::Providers::WhatsappCloudService do
           body: {
             messaging_product: 'whatsapp',
             message_id: message.source_id,
+            status: 'read',
             typing_indicator: { type: 'text' }
           }.to_json
         )
@@ -336,6 +337,7 @@ describe Whatsapp::Providers::WhatsappCloudService do
           body: {
             messaging_product: 'whatsapp',
             message_id: message.source_id,
+            status: 'read',
             typing_indicator: { type: 'text' }
           }.to_json
         )
@@ -355,6 +357,7 @@ describe Whatsapp::Providers::WhatsappCloudService do
           body: {
             messaging_product: 'whatsapp',
             message_id: message.source_id,
+            status: 'read',
             typing_indicator: { type: 'text' }
           }.to_json
         )

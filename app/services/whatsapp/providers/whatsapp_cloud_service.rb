@@ -191,6 +191,7 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
       body: {
         messaging_product: 'whatsapp',
         message_id: last_message.source_id,
+        status: 'read',
         # NOTE: API currently only supports "typing", no "recording" status.
         typing_indicator: { type: 'text' }
       }.to_json
