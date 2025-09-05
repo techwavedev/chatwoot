@@ -33,9 +33,9 @@ RSpec.describe Article do
       end
 
       it 'invalid when crossed the limit' do
-        article.content = 'a' * 25_001
+        article.content = 'a' * 70_000
         article.valid?
-        expect(article.errors[:content]).to include('is too long (maximum is 20000 characters)')
+        expect(article.errors[:content]).to include('is too long (maximum is 65535 characters)')
       end
     end
   end
