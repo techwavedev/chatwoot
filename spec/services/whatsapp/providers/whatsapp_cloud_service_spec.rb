@@ -402,4 +402,28 @@ describe Whatsapp::Providers::WhatsappCloudService do
       expect(Rails.logger).to have_received(:error)
     end
   end
+
+  describe '#send_reaction_message' do
+    it 'calls messages endpoint to send reaction message' do
+      message_with_reaction = create(:message, message_type: :outgoing, content: '👍', conversation: conversation,
+                                               inbox: whatsapp_channel.inbox, content_attributes: { is_reaction: true, in_reply_to: message.id })
+
+      stub_request(:post, 'https://graph.facebook.com/v23.0/123456789/messages')
+        .with(
+          body: {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: '+123456789',
+            type: 'reaction',
+            reaction: {
+              message_id: message.source_id,
+              emoji: '👍'
+            }
+          }.to_json
+        )
+        .to_return(status: 200, body: whatsapp_response.to_json, headers: response_headers)
+
+      expect(service.send_message('+123456789', message_with_reaction)).to eq 'message_id'
+    end
+  end
 end

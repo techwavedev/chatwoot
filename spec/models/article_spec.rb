@@ -18,7 +18,6 @@ RSpec.describe Article do
     it { is_expected.to belong_to(:author) }
   end
 
-  # This validation happens in ApplicationRecord
   describe 'length validations' do
     let(:article) do
       create(:article, category_id: category_1.id, content: 'This is the content', description: 'this is the description',

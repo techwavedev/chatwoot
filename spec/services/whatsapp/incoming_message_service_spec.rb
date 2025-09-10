@@ -223,6 +223,28 @@ describe Whatsapp::IncomingMessageService do
         expect(whatsapp_channel.inbox.messages.first.content).to eq('Check out my product!')
         expect(whatsapp_channel.inbox.messages.first.attachments.present?).to be true
       end
+
+      it 'sets is_recorded_audio metadata for voice messages' do
+        stub_request(:get, whatsapp_channel.media_url('b1c68f38-8734-4ad3-b4a1-ef0c10d683')).to_return(
+          status: 200,
+          body: File.read('spec/assets/sample.mp3'),
+          headers: {}
+        )
+        params = {
+          'contacts' => [{ 'profile' => { 'name' => 'Sojan Jose' }, 'wa_id' => '2423423243' }],
+          'messages' => [{ 'from' => '2423423243', 'id' => 'SDFADSf23sfasdafasdfa',
+                           'audio' => { 'id' => 'b1c68f38-8734-4ad3-b4a1-ef0c10d683',
+                                        'mime_type' => 'audio/mp3',
+                                        'sha256' => 'fa2820256f2cd3f2df03fa247d7b01e79d3fe794344aadcea08cee06bcce3c94',
+                                        'voice' => true },
+                           'timestamp' => '1633034394', 'type' => 'audio' }]
+        }.with_indifferent_access
+
+        described_class.new(inbox: whatsapp_channel.inbox, params: params).perform
+
+        expect(whatsapp_channel.inbox.conversations.count).not_to eq(0)
+        expect(whatsapp_channel.inbox.messages.first.attachments.first.meta['is_recorded_audio']).to be true
+      end
     end
 
     context 'when valid location message params' do

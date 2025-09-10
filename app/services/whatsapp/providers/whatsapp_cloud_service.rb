@@ -1,4 +1,4 @@
-class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseService
+class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseService # rubocop:disable Metrics/ClassLength
   def send_message(phone_number, message)
     @message = message
 
@@ -6,6 +6,8 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
       send_attachment_message(phone_number, message)
     elsif message.content_type == 'input_select'
       send_interactive_text_message(phone_number, message)
+    elsif message.content_attributes[:is_reaction]
+      send_reaction_message(phone_number, message)
     else
       send_text_message(phone_number, message)
     end
@@ -218,5 +220,24 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
     Rails.logger.error(response.parsed_response) unless response.success?
 
     response.success?
+  end
+
+  def send_reaction_message(phone_number, message)
+    response = HTTParty.post(
+      "#{phone_id_path('v23.0')}/messages",
+      headers: api_headers,
+      body: {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: phone_number,
+        type: 'reaction',
+        reaction: {
+          message_id: message.content_attributes[:in_reply_to_external_id],
+          emoji: message.outgoing_content
+        }
+      }.to_json
+    )
+
+    process_response(response, message)
   end
 end
