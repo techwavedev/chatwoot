@@ -78,6 +78,8 @@ module Chatwoot
       config.active_record.encryption.support_unencrypted_data = true
       config.active_record.encryption.store_key_references = true
     end
+
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new($stdout) if defined?(Rails::Console)
   end
 
   def self.config

@@ -63,6 +63,8 @@ export default {
       displayName: '',
       email: '',
       messageSignature: '',
+      signaturePosition: '',
+      signatureSeparator: '',
       hotKeys: [
         {
           key: 'enter',
@@ -114,6 +116,11 @@ export default {
       this.avatarUrl = this.currentUser.avatar_url;
       this.displayName = this.currentUser.display_name;
       this.messageSignature = this.currentUser.message_signature;
+
+      const { signature_position, signature_separator } =
+        this.currentUser.ui_settings || {};
+      this.signaturePosition = signature_position || 'top';
+      this.signatureSeparator = signature_separator || 'blank';
     },
     async dispatchUpdate(payload, successMessage, errorMessage) {
       let alertMessage = '';
@@ -154,16 +161,29 @@ export default {
 
       if (hasEmailChanged && success) clearCookiesOnLogout();
     },
-    async updateSignature(signature) {
-      const payload = { message_signature: signature };
-      let successMessage = this.$t(
-        'PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.API_SUCCESS'
-      );
-      let errorMessage = this.$t(
-        'PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.API_ERROR'
-      );
+    async updateSignature(signature, signaturePosition, signatureSeparator) {
+      try {
+        const signaturePayload = { message_signature: signature };
+        await this.dispatchUpdate(
+          signaturePayload,
+          this.$t(
+            'PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.API_SUCCESS'
+          ),
+          this.$t('PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.API_ERROR')
+        );
 
-      await this.dispatchUpdate(payload, successMessage, errorMessage);
+        await this.updateUISettings({
+          signature_position: signaturePosition,
+          signature_separator: signatureSeparator,
+        });
+
+        this.signaturePosition = signaturePosition;
+        this.signatureSeparator = signatureSeparator;
+      } catch (error) {
+        useAlert(
+          this.$t('PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.API_ERROR')
+        );
+      }
     },
     updateProfilePicture({ file, url }) {
       this.avatarFile = file;
@@ -251,6 +271,8 @@ export default {
     >
       <MessageSignature
         :message-signature="messageSignature"
+        :signature-position="signaturePosition"
+        :signature-separator="signatureSeparator"
         @update-signature="updateSignature"
       />
     </FormSection>

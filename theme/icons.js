@@ -134,6 +134,15 @@ export const icons = {
     width: 14,
     height: 14,
   },
+  baileys: {
+    body: `
+    <circle cx="50" cy="50" r="47" fill="none" stroke="#1DD1A1" stroke-width="3"/>
+    <path d="M28 26 L72 16 L42 54 L42 34 Z" fill="#1DD1A1"/>
+    <path d="M72 74 L28 84 L58 46 L58 66 Z" fill="#1DD1A1"/>
+    `,
+    width: 100,
+    height: 100,
+  },
   instagram: {
     body: `<path d="M8.667 0A3.333 3.333 0 0 1 12 3.333v5.334A3.333 3.333 0 0 1 8.667 12H3.333A3.333 3.333 0 0 1 0 8.667V3.333A3.333 3.333 0 0 1 3.333 0zM6 3.333a2.667 2.667 0 1 0 0 5.334 2.667 2.667 0 0 0 0-5.334m0 1.334a1.333 1.333 0 1 1 0 2.666 1.333 1.333 0 0 1 0-2.666m3-2.334a.667.667 0 1 0 0 1.334.667.667 0 0 0 0-1.334" fill="currentColor"/>`,
     width: 12,

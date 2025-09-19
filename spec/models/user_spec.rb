@@ -254,4 +254,32 @@ RSpec.describe User do
       end
     end
   end
+
+  context 'when the user does not have signature position set' do
+    it 'returns the default signature position' do
+      expect(user.signature_position).to eq('top')
+    end
+  end
+
+  context 'when the user has signature position set' do
+    it 'returns the user signature position' do
+      user.update!(ui_settings: { signature_position: 'bottom' })
+
+      expect(user.signature_position).to eq('bottom')
+    end
+  end
+
+  context 'when the user does not have signature separator set' do
+    it 'returns the default signature separator' do
+      expect(user.signature_separator).to eq('blank')
+    end
+  end
+
+  context 'when the user has signature separator set' do
+    it 'returns the user signature separator' do
+      user.update!(ui_settings: { signature_separator: '--' })
+
+      expect(user.signature_separator).to eq('--')
+    end
+  end
 end

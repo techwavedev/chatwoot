@@ -36,10 +36,10 @@ describe Whatsapp::IncomingMessageService do
       end
 
       it 'reopen last conversation if last conversation is resolved and lock to single conversation is enabled' do
-        whatsapp_channel.inbox.update(lock_to_single_conversation: true)
+        whatsapp_channel.inbox.update!(lock_to_single_conversation: true)
         contact_inbox = create(:contact_inbox, inbox: whatsapp_channel.inbox, source_id: params[:messages].first[:from])
         last_conversation = create(:conversation, inbox: whatsapp_channel.inbox, contact_inbox: contact_inbox)
-        last_conversation.update(status: 'resolved')
+        last_conversation.update!(status: 'resolved')
         described_class.new(inbox: whatsapp_channel.inbox, params: params).perform
         # no new conversation should be created
         expect(whatsapp_channel.inbox.conversations.count).to eq(1)
@@ -49,10 +49,10 @@ describe Whatsapp::IncomingMessageService do
       end
 
       it 'creates a new conversation if last conversation is resolved and lock to single conversation is disabled' do
-        whatsapp_channel.inbox.update(lock_to_single_conversation: false)
+        whatsapp_channel.inbox.update!(lock_to_single_conversation: false)
         contact_inbox = create(:contact_inbox, inbox: whatsapp_channel.inbox, source_id: params[:messages].first[:from])
         last_conversation = create(:conversation, inbox: whatsapp_channel.inbox, contact_inbox: contact_inbox)
-        last_conversation.update(status: 'resolved')
+        last_conversation.update!(status: 'resolved')
         described_class.new(inbox: whatsapp_channel.inbox, params: params).perform
         # new conversation should be created
         expect(whatsapp_channel.inbox.conversations.count).to eq(2)
@@ -60,10 +60,10 @@ describe Whatsapp::IncomingMessageService do
       end
 
       it 'will not create a new conversation if last conversation is not resolved and lock to single conversation is disabled' do
-        whatsapp_channel.inbox.update(lock_to_single_conversation: false)
+        whatsapp_channel.inbox.update!(lock_to_single_conversation: false)
         contact_inbox = create(:contact_inbox, inbox: whatsapp_channel.inbox, source_id: params[:messages].first[:from])
         last_conversation = create(:conversation, inbox: whatsapp_channel.inbox, contact_inbox: contact_inbox)
-        last_conversation.update(status: Conversation.statuses.except('resolved').keys.sample)
+        last_conversation.update!(status: Conversation.statuses.except('resolved').keys.sample)
         described_class.new(inbox: whatsapp_channel.inbox, params: params).perform
         # new conversation should be created
         expect(whatsapp_channel.inbox.conversations.count).to eq(1)
@@ -222,6 +222,28 @@ describe Whatsapp::IncomingMessageService do
         expect(Contact.all.first.name).to eq('Sojan Jose')
         expect(whatsapp_channel.inbox.messages.first.content).to eq('Check out my product!')
         expect(whatsapp_channel.inbox.messages.first.attachments.present?).to be true
+      end
+
+      it 'sets is_recorded_audio metadata for voice messages' do
+        stub_request(:get, whatsapp_channel.media_url('b1c68f38-8734-4ad3-b4a1-ef0c10d683')).to_return(
+          status: 200,
+          body: File.read('spec/assets/sample.mp3'),
+          headers: {}
+        )
+        params = {
+          'contacts' => [{ 'profile' => { 'name' => 'Sojan Jose' }, 'wa_id' => '2423423243' }],
+          'messages' => [{ 'from' => '2423423243', 'id' => 'SDFADSf23sfasdafasdfa',
+                           'audio' => { 'id' => 'b1c68f38-8734-4ad3-b4a1-ef0c10d683',
+                                        'mime_type' => 'audio/mp3',
+                                        'sha256' => 'fa2820256f2cd3f2df03fa247d7b01e79d3fe794344aadcea08cee06bcce3c94',
+                                        'voice' => true },
+                           'timestamp' => '1633034394', 'type' => 'audio' }]
+        }.with_indifferent_access
+
+        described_class.new(inbox: whatsapp_channel.inbox, params: params).perform
+
+        expect(whatsapp_channel.inbox.conversations.count).not_to eq(0)
+        expect(whatsapp_channel.inbox.messages.first.attachments.first.meta['is_recorded_audio']).to be true
       end
     end
 

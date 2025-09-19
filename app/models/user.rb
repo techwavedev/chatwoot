@@ -190,6 +190,21 @@ class User < ApplicationRecord
     Chatwoot.mfa_enabled?
   end
 
+  def signature_position
+    ui_settings&.fetch('signature_position', 'top') || 'top'
+  end
+
+  def signature_separator
+    ui_settings&.fetch('signature_separator', 'blank') || 'blank'
+  end
+
+  def signature_settings_with_defaults
+    {
+      'position' => signature_position,
+      'separator' => signature_separator
+    }
+  end
+
   private
 
   def remove_macros

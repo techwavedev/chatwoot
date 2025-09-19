@@ -7,6 +7,7 @@ import QRCode from 'qrcode';
 import EmptyState from '../../../../components/widgets/EmptyState.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import DuplicateInboxBanner from './channels/instagram/DuplicateInboxBanner.vue';
+import WhatsappBaileysLinkDeviceModal from './components/WhatsappBaileysLinkDeviceModal.vue';
 import { useInbox } from 'dashboard/composables/useInbox';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
 
@@ -24,9 +25,14 @@ const currentInbox = computed(() =>
   store.getters['inboxes/getInbox'](route.params.inbox_id)
 );
 
+const showBaileysLinkDeviceModal = reactive({
+  value: false,
+});
+
 // Use useInbox composable with the inbox ID
 const {
   isAWhatsAppCloudChannel,
+  isAWhatsAppBaileysChannel,
   isATwilioChannel,
   isASmsInbox,
   isALineChannel,
@@ -83,6 +89,12 @@ const message = computed(() => {
   if (isAWhatsAppCloudChannel.value && shouldShowWhatsAppWebhookDetails.value) {
     return `${t('INBOX_MGMT.FINISH.MESSAGE')}. ${t(
       'INBOX_MGMT.ADD.WHATSAPP.API_CALLBACK.SUBTITLE'
+    )}`;
+  }
+
+  if (isAWhatsAppBaileysChannel.value) {
+    return `${t('INBOX_MGMT.FINISH.MESSAGE')}. ${t(
+      'INBOX_MGMT.ADD.WHATSAPP.BAILEYS.SUBTITLE'
     )}`;
   }
 
@@ -152,6 +164,14 @@ async function generateQRCodes() {
   }
 }
 
+const onOpenBaileysLinkDeviceModal = () => {
+  showBaileysLinkDeviceModal.value = true;
+};
+
+const onCloseBaileysLinkDeviceModal = () => {
+  showBaileysLinkDeviceModal.value = false;
+};
+
 // Watch for currentInbox changes and regenerate QR codes when available
 watch(
   currentInbox,
@@ -213,6 +233,14 @@ onMounted(() => {
             :script="currentInbox.provider_config.webhook_verify_token"
           />
         </div>
+        <div
+          v-if="isAWhatsAppBaileysChannel"
+          class="w-[50%] max-w-[50%] ml-[25%]"
+        >
+          <NextButton @click="onOpenBaileysLinkDeviceModal">
+            {{ $t('INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_BUTTON') }}
+          </NextButton>
+        </div>
         <div class="w-[50%] max-w-[50%] ml-[25%]">
           <woot-code
             v-if="isALineChannel"
@@ -234,7 +262,9 @@ onMounted(() => {
           <woot-code lang="html" :script="currentInbox.forward_to_email" />
         </div>
         <div
-          v-if="isAWhatsAppChannel && qrCodes.whatsapp"
+          v-if="
+            isAWhatsAppChannel && !isAWhatsAppBaileysChannel && qrCodes.whatsapp
+          "
           class="flex flex-col gap-3 items-center mt-8"
         >
           <p class="mt-2 text-sm text-n-slate-9">
@@ -307,5 +337,12 @@ onMounted(() => {
         </div>
       </div>
     </EmptyState>
+    <WhatsappBaileysLinkDeviceModal
+      v-if="showBaileysLinkDeviceModal.value"
+      :show="showBaileysLinkDeviceModal.value"
+      :on-close="onCloseBaileysLinkDeviceModal"
+      :inbox="currentInbox"
+      is-setup
+    />
   </div>
 </template>

@@ -259,7 +259,7 @@ RSpec.describe Integrations::Openai::ProcessorService do
 
       context 'when CAPTAIN_OPEN_AI_ENDPOINT is not configured' do
         it 'uses default OpenAI endpoint' do
-          InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_ENDPOINT')&.destroy
+          InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_ENDPOINT')&.destroy!
 
           stub_request(:post, 'https://api.openai.com/v1/chat/completions')
             .with(body: anything, headers: expected_headers)
