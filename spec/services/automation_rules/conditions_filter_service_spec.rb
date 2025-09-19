@@ -145,7 +145,7 @@ RSpec.describe AutomationRules::ConditionsFilterService do
           rule.conditions = [
             { 'values': ['bug'], 'attribute_key': 'labels', 'query_operator': nil, 'filter_operator': 'equal_to' }
           ]
-          rule.save
+          rule.save!
         end
 
         it 'will return true when conversation has the label' do
@@ -156,7 +156,7 @@ RSpec.describe AutomationRules::ConditionsFilterService do
           rule.conditions = [
             { 'values': ['feature'], 'attribute_key': 'labels', 'query_operator': nil, 'filter_operator': 'equal_to' }
           ]
-          rule.save
+          rule.save!
           expect(described_class.new(rule, conversation, { changed_attributes: {} }).perform).to be(false)
         end
       end
@@ -166,7 +166,7 @@ RSpec.describe AutomationRules::ConditionsFilterService do
           rule.conditions = [
             { 'values': ['feature'], 'attribute_key': 'labels', 'query_operator': nil, 'filter_operator': 'not_equal_to' }
           ]
-          rule.save
+          rule.save!
         end
 
         it 'will return true when conversation does not have the label' do
@@ -184,7 +184,7 @@ RSpec.describe AutomationRules::ConditionsFilterService do
           rule.conditions = [
             { 'values': [], 'attribute_key': 'labels', 'query_operator': nil, 'filter_operator': 'is_present' }
           ]
-          rule.save
+          rule.save!
         end
 
         it 'will return true when conversation has any labels' do
@@ -202,7 +202,7 @@ RSpec.describe AutomationRules::ConditionsFilterService do
           rule.conditions = [
             { 'values': [], 'attribute_key': 'labels', 'query_operator': nil, 'filter_operator': 'is_not_present' }
           ]
-          rule.save
+          rule.save!
         end
 
         it 'will return false when conversation has any labels' do

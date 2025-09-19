@@ -121,7 +121,7 @@ RSpec.describe AutomationRules::ActionService do
     describe '#perform with add_label action' do
       before do
         rule.actions << { action_name: 'add_label', action_params: %w[bug feature] }
-        rule.save
+        rule.save!
       end
 
       it 'will add labels to conversation' do
@@ -141,7 +141,7 @@ RSpec.describe AutomationRules::ActionService do
       before do
         conversation.add_labels(%w[bug feature support])
         rule.actions << { action_name: 'remove_label', action_params: %w[bug feature] }
-        rule.save
+        rule.save!
       end
 
       it 'will remove specified labels from conversation' do
