@@ -11,6 +11,7 @@ import { extractTextFromMarkdown } from 'dashboard/helper/editorHelper';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import WhatsAppOptions from './WhatsAppOptions.vue';
+import ContentTemplateSelector from './ContentTemplateSelector.vue';
 
 const props = defineProps({
   attachedFiles: { type: Array, default: () => [] },
@@ -18,6 +19,7 @@ const props = defineProps({
   isWhatsappBaileysInbox: { type: Boolean, default: false },
   isEmailOrWebWidgetInbox: { type: Boolean, default: false },
   isTwilioSmsInbox: { type: Boolean, default: false },
+  isTwilioWhatsAppInbox: { type: Boolean, default: false },
   messageTemplates: { type: Array, default: () => [] },
   channelType: { type: String, default: '' },
   isLoading: { type: Boolean, default: false },
@@ -33,6 +35,7 @@ const emit = defineEmits([
   'discard',
   'sendMessage',
   'sendWhatsappMessage',
+  'sendTwilioMessage',
   'insertEmoji',
   'addSignature',
   'removeSignature',
@@ -62,6 +65,23 @@ const {
 
 const sendWithSignature = computed(() => {
   return fetchSignatureFlagFromUISettings(props.channelType);
+});
+
+const showTwilioContentTemplates = computed(() => {
+  return props.isTwilioWhatsAppInbox && props.inboxId;
+});
+
+const shouldShowEmojiButton = computed(() => {
+  return (
+    !props.isWhatsappInbox && !props.isTwilioWhatsAppInbox && !props.hasNoInbox
+  );
+});
+
+const isRegularMessageMode = computed(() => {
+  return (
+    (!props.isWhatsappInbox && !props.isTwilioWhatsAppInbox) ||
+    props.isWhatsappBaileysInbox
+  );
 });
 
 const setSignature = () => {
@@ -126,7 +146,7 @@ const keyboardEvents = {
     action: () => {
       if (
         isEditorHotKeyEnabled('enter') &&
-        !props.isWhatsappInbox &&
+        isRegularMessageMode.value &&
         !props.isDropdownActive
       ) {
         emit('sendMessage');
@@ -137,7 +157,7 @@ const keyboardEvents = {
     action: () => {
       if (
         isEditorHotKeyEnabled('cmd_enter') &&
-        !props.isWhatsappInbox &&
+        isRegularMessageMode.value &&
         !props.isDropdownActive
       ) {
         emit('sendMessage');
@@ -159,8 +179,13 @@ useKeyboardEvents(keyboardEvents);
         :message-templates="messageTemplates"
         @send-message="emit('sendWhatsappMessage', $event)"
       />
+      <ContentTemplateSelector
+        v-if="showTwilioContentTemplates"
+        :inbox-id="inboxId"
+        @send-message="emit('sendTwilioMessage', $event)"
+      />
       <div
-        v-if="!isWhatsappInbox && !hasNoInbox"
+        v-if="shouldShowEmojiButton"
         v-on-click-outside="() => (isEmojiPickerOpen = false)"
         class="relative"
       >
@@ -173,7 +198,7 @@ useKeyboardEvents(keyboardEvents);
         />
         <EmojiInput
           v-if="isEmojiPickerOpen"
-          class="ltr:left-0 rtl:right-0 top-full mt-1.5"
+          class="top-full mt-1.5 ltr:left-0 rtl:right-0"
           :on-click="onClickInsertEmoji"
         />
       </div>
@@ -200,7 +225,7 @@ useKeyboardEvents(keyboardEvents);
         />
       </FileUpload>
       <Button
-        v-if="hasSelectedInbox && !isWhatsappInbox"
+        v-if="hasSelectedInbox && isRegularMessageMode"
         icon="i-lucide-signature"
         color="slate"
         size="sm"
@@ -219,7 +244,7 @@ useKeyboardEvents(keyboardEvents);
         @click="emit('discard')"
       />
       <Button
-        v-if="!isWhatsappInbox || isWhatsappBaileysInbox"
+        v-if="isRegularMessageMode"
         :label="sendButtonLabel"
         size="sm"
         class="!text-xs font-medium"

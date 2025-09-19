@@ -4,6 +4,7 @@ import { ref, provide } from 'vue';
 import { useConfig } from 'dashboard/composables/useConfig';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
 import { useAI } from 'dashboard/composables/useAI';
+import { useSnakeCase } from 'dashboard/composables/useTransformKeys';
 import { useAdmin } from 'dashboard/composables/useAdmin';
 import { useAlert } from 'dashboard/composables';
 import { useStore } from 'vuex';
@@ -453,6 +454,11 @@ export default {
     makeMessagesRead() {
       this.$store.dispatch('markMessagesRead', { id: this.currentChat.id });
     },
+    async handleMessageRetry(message) {
+      if (!message) return;
+      const payload = useSnakeCase(message);
+      await this.$store.dispatch('sendMessageWithData', payload);
+    },
     getInReplyToMessage(parentMessage) {
       if (!parentMessage) return {};
       const inReplyToMessageId = parentMessage.content_attributes?.in_reply_to;
@@ -546,6 +552,7 @@ export default {
       :is-an-email-channel="isAnEmailChannel"
       :inbox-supports-reply-to="inboxSupportsReplyTo"
       :messages="getMessages"
+      @retry="handleMessageRetry"
     >
       <template #beforeAll>
         <transition name="slide-up">

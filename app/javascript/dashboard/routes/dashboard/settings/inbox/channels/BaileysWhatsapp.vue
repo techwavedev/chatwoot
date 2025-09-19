@@ -1,95 +1,87 @@
-<script>
-import { mapGetters } from 'vuex';
+<script setup>
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
+import { useI18n } from 'vue-i18n';
 import { useVuelidate } from '@vuelidate/core';
 import { useAlert } from 'dashboard/composables';
 import { required, requiredIf } from '@vuelidate/validators';
-import router from '../../../../index';
 import { isPhoneE164OrEmpty } from 'shared/helpers/Validators';
 import { isValidURL } from '../../../../../helper/URLHelper';
 
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Switch from 'dashboard/components-next/switch/Switch.vue';
 
-export default {
-  components: {
-    NextButton,
-    // eslint-disable-next-line vue/no-reserved-component-names
-    Switch,
+const router = useRouter();
+const store = useStore();
+const { t } = useI18n();
+
+const inboxName = ref('');
+const phoneNumber = ref('');
+const apiKey = ref('');
+const providerUrl = ref('');
+const showAdvancedOptions = ref(false);
+const markAsRead = ref(true);
+
+const uiFlags = computed(() => store.getters['inboxes/getUIFlags']);
+
+const rules = computed(() => ({
+  inboxName: { required },
+  phoneNumber: { required, isPhoneE164OrEmpty },
+  providerUrl: {
+    isValidURL: value => !value || isValidURL(value),
+    requiredIf: requiredIf(apiKey),
   },
-  setup() {
-    return { v$: useVuelidate() };
-  },
-  data() {
-    return {
-      inboxName: '',
-      phoneNumber: '',
-      apiKey: '',
-      providerUrl: '',
-      showAdvancedOptions: false,
-      markAsRead: true,
+  apiKey: { requiredIf: requiredIf(providerUrl) },
+}));
+
+const v$ = useVuelidate(rules, {
+  inboxName,
+  phoneNumber,
+  providerUrl,
+  apiKey,
+});
+
+const createChannel = async () => {
+  v$.value.$touch();
+  if (v$.value.$invalid) {
+    return;
+  }
+
+  try {
+    const providerConfig = {
+      mark_as_read: markAsRead.value,
     };
-  },
-  computed: {
-    ...mapGetters({ uiFlags: 'inboxes/getUIFlags' }),
-  },
-  validations() {
-    return {
-      inboxName: { required },
-      phoneNumber: { required, isPhoneE164OrEmpty },
-      providerUrl: {
-        isValidURL: value => !value || isValidURL(value),
-        requiredIf: requiredIf(this.apiKey),
+
+    if (apiKey.value || providerUrl.value) {
+      providerConfig.api_key = apiKey.value;
+      providerConfig.url = providerUrl.value;
+    }
+
+    const whatsappChannel = await store.dispatch('inboxes/createChannel', {
+      name: inboxName.value,
+      channel: {
+        type: 'whatsapp',
+        phone_number: phoneNumber.value,
+        provider: 'baileys',
+        provider_config: providerConfig,
       },
-      apiKey: { requiredIf: requiredIf(this.providerUrl) },
-    };
-  },
-  methods: {
-    async createChannel() {
-      this.v$.$touch();
-      if (this.v$.$invalid) {
-        return;
-      }
+    });
 
-      try {
-        const providerConfig = {
-          mark_as_read: this.markAsRead,
-        };
+    router.replace({
+      name: 'settings_inboxes_add_agents',
+      params: {
+        page: 'new',
+        inbox_id: whatsappChannel.id,
+      },
+    });
+  } catch (error) {
+    useAlert(error.message || t('INBOX_MGMT.ADD.WHATSAPP.API.ERROR_MESSAGE'));
+  }
+};
 
-        if (this.apiKey || this.providerUrl) {
-          providerConfig.api_key = this.apiKey;
-          providerConfig.url = this.providerUrl;
-        }
-
-        const whatsappChannel = await this.$store.dispatch(
-          'inboxes/createChannel',
-          {
-            name: this.inboxName,
-            channel: {
-              type: 'whatsapp',
-              phone_number: this.phoneNumber,
-              provider: 'baileys',
-              provider_config: providerConfig,
-            },
-          }
-        );
-
-        router.replace({
-          name: 'settings_inboxes_add_agents',
-          params: {
-            page: 'new',
-            inbox_id: whatsappChannel.id,
-          },
-        });
-      } catch (error) {
-        useAlert(
-          error.message || this.$t('INBOX_MGMT.ADD.WHATSAPP.API.ERROR_MESSAGE')
-        );
-      }
-    },
-    setShowAdvancedOptions() {
-      this.showAdvancedOptions = true;
-    },
-  },
+const setShowAdvancedOptions = () => {
+  showAdvancedOptions.value = true;
 };
 </script>
 
