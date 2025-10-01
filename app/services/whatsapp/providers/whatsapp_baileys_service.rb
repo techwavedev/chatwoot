@@ -272,6 +272,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       content[:ptt] = attachment.meta&.dig('is_recorded_audio')
     when 'file'
       content[:document] = buffer
+      content[:mimetype] = attachment.file.content_type
     when 'sticker'
       content[:sticker] = buffer
     when 'video'
