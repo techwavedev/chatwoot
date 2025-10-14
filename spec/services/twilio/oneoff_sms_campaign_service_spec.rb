@@ -38,19 +38,19 @@ describe Twilio::OneoffSmsCampaignService do
       contact_with_label1.update_labels([label1.title])
       contact_with_label2.update_labels([label2.title])
       contact_with_both_labels.update_labels([label1.title, label2.title])
-      expect(twilio_messages).to receive(:create!).with(
+      expect(twilio_messages).to receive(:create).with(
         body: campaign.message,
         messaging_service_sid: twilio_sms.messaging_service_sid,
         to: contact_with_label1.phone_number,
         status_callback: 'http://localhost:3000/twilio/delivery_status'
       ).once
-      expect(twilio_messages).to receive(:create!).with(
+      expect(twilio_messages).to receive(:create).with(
         body: campaign.message,
         messaging_service_sid: twilio_sms.messaging_service_sid,
         to: contact_with_label2.phone_number,
         status_callback: 'http://localhost:3000/twilio/delivery_status'
       ).once
-      expect(twilio_messages).to receive(:create!).with(
+      expect(twilio_messages).to receive(:create).with(
         body: campaign.message,
         messaging_service_sid: twilio_sms.messaging_service_sid,
         to: contact_with_both_labels.phone_number,
@@ -66,7 +66,7 @@ describe Twilio::OneoffSmsCampaignService do
       contact.update_labels([label1.title])
 
       expect(Liquid::CampaignTemplateService).to receive(:new).with(campaign: campaign, contact: contact).and_call_original
-      expect(twilio_messages).to receive(:create!).once
+      expect(twilio_messages).to receive(:create).once
 
       sms_campaign_service.perform
     end
@@ -78,16 +78,16 @@ describe Twilio::OneoffSmsCampaignService do
 
       error = Twilio::REST::TwilioError.new("The 'To' number #{contact_error.phone_number} is not a valid phone number.")
 
-      allow(twilio_messages).to receive(:create!).and_return(nil)
+      allow(twilio_messages).to receive(:create).and_return(nil)
 
-      expect(twilio_messages).to receive(:create!).with(
+      expect(twilio_messages).to receive(:create).with(
         body: campaign.message,
         messaging_service_sid: twilio_sms.messaging_service_sid,
         to: contact_error.phone_number,
         status_callback: 'http://localhost:3000/twilio/delivery_status'
       ).and_raise(error)
 
-      expect(twilio_messages).to receive(:create!).with(
+      expect(twilio_messages).to receive(:create).with(
         body: campaign.message,
         messaging_service_sid: twilio_sms.messaging_service_sid,
         to: contact_success.phone_number,
