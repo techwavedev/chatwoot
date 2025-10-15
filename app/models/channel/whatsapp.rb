@@ -15,8 +15,8 @@
 #
 # Indexes
 #
-#  index_channel_whatsapp_baileys_connection  (provider_connection) WHERE ((provider)::text = 'baileys'::text) USING gin
-#  index_channel_whatsapp_on_phone_number     (phone_number) UNIQUE
+#  index_channel_whatsapp_on_phone_number      (phone_number) UNIQUE
+#  index_channel_whatsapp_provider_connection  (provider_connection) WHERE ((provider)::text = ANY ((ARRAY['baileys'::character varying, 'zapi'::character varying])::text[])) USING gin # rubocop:disable Layout/LineLength
 #
 
 class Channel::Whatsapp < ApplicationRecord
@@ -27,7 +27,7 @@ class Channel::Whatsapp < ApplicationRecord
   EDITABLE_ATTRS = [:phone_number, :provider, { provider_config: {} }].freeze
 
   # default at the moment is 360dialog lets change later.
-  PROVIDERS = %w[default whatsapp_cloud baileys].freeze
+  PROVIDERS = %w[default whatsapp_cloud baileys zapi].freeze
   before_validation :ensure_webhook_verify_token
 
   validates :provider, inclusion: { in: PROVIDERS }
@@ -39,7 +39,7 @@ class Channel::Whatsapp < ApplicationRecord
   after_create :sync_templates
   before_destroy :teardown_webhooks
 
-  before_destroy :disconnect_channel_provider, if: -> { provider == 'baileys' }
+  before_destroy :disconnect_channel_provider, if: -> { provider_service.respond_to?(:disconnect_channel_provider) }
 
   def name
     'Whatsapp'
@@ -51,6 +51,8 @@ class Channel::Whatsapp < ApplicationRecord
       Whatsapp::Providers::WhatsappCloudService.new(whatsapp_channel: self)
     when 'baileys'
       Whatsapp::Providers::WhatsappBaileysService.new(whatsapp_channel: self)
+    when 'zapi'
+      Whatsapp::Providers::WhatsappZapiService.new(whatsapp_channel: self)
     else
       Whatsapp::Providers::Whatsapp360DialogService.new(whatsapp_channel: self)
     end

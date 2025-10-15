@@ -277,6 +277,14 @@ describe('inboxMixin', () => {
       expect(wrapper.vm.isAWhatsAppBaileysChannel).toBe(true);
     });
 
+    it('isAWhatsAppZapiChannel returns true if channel type is WhatsApp and provider is zapi', () => {
+      const Component = getComponentConfigForInbox('Channel::Whatsapp', {
+        provider: 'zapi',
+      });
+      const wrapper = shallowMount(Component);
+      expect(wrapper.vm.isAWhatsAppZapiChannel).toBe(true);
+    });
+
     it('isAWhatsAppChannel returns true if channel type is WhatsApp', () => {
       const Component = getComponentConfigForInbox('Channel::Whatsapp');
       const wrapper = shallowMount(Component);

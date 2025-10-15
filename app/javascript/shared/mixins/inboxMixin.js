@@ -95,6 +95,12 @@ export default {
         this.whatsAppAPIProvider === 'baileys'
       );
     },
+    isAWhatsAppZapiChannel() {
+      return (
+        this.channelType === INBOX_TYPES.WHATSAPP &&
+        this.whatsAppAPIProvider === 'zapi'
+      );
+    },
     chatAdditionalAttributes() {
       const { additional_attributes: additionalAttributes } = this.chat || {};
       return additionalAttributes || {};

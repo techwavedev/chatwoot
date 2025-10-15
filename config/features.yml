@@ -209,3 +209,6 @@
   display_name: SAML
   enabled: false
   premium: true
+- name: channel_zapi
+  display_name: Z-API Channel
+  enabled: false

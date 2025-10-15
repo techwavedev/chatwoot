@@ -379,7 +379,7 @@ RSpec.describe Channel::Whatsapp do
 
   describe 'callbacks' do
     describe '#disconnect_channel_provider' do
-      context 'when provider is baileys' do
+      context 'when provider implements the method' do
         let(:channel) { create(:channel_whatsapp, provider: 'baileys', validate_provider_config: false, sync_templates: false) }
         let(:disconnect_url) { "#{channel.provider_config['provider_url']}/connections/#{channel.phone_number}" }
 
@@ -402,7 +402,7 @@ RSpec.describe Channel::Whatsapp do
         end
       end
 
-      context 'when provider is not baileys' do
+      context 'when provider does not implement the method' do
         let(:channel) { create(:channel_whatsapp, provider: 'whatsapp_cloud', validate_provider_config: false, sync_templates: false) }
 
         it 'does not invoke callback' do

@@ -67,10 +67,14 @@ watchEffect(() => {
     <div class="flex flex-col h-auto overflow-auto">
       <woot-modal-header
         :header-title="
-          $t('INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_DEVICE_MODAL.TITLE')
+          $t(
+            'INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.LINK_DEVICE_MODAL.TITLE'
+          )
         "
         :header-content="
-          $t('INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_DEVICE_MODAL.SUBTITLE')
+          $t(
+            'INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.LINK_DEVICE_MODAL.SUBTITLE'
+          )
         "
       />
 
@@ -90,7 +94,7 @@ watchEffect(() => {
             <Button :is-loading="loading" @click="setup">
               {{
                 $t(
-                  'INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_DEVICE_MODAL.LINK_DEVICE'
+                  'INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.LINK_DEVICE_MODAL.LINK_DEVICE'
                 )
               }}
             </Button>
@@ -101,7 +105,7 @@ watchEffect(() => {
               <p>
                 {{
                   $t(
-                    'INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_DEVICE_MODAL.LOADING_QRCODE'
+                    'INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.LINK_DEVICE_MODAL.LOADING_QRCODE'
                   )
                 }}
               </p>
@@ -119,7 +123,7 @@ watchEffect(() => {
             <p>
               {{
                 $t(
-                  'INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_DEVICE_MODAL.RECONNECTING'
+                  'INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.LINK_DEVICE_MODAL.RECONNECTING'
                 )
               }}
             </p>
@@ -130,7 +134,7 @@ watchEffect(() => {
             <p v-if="isSetup" class="text-center">
               {{
                 $t(
-                  'INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_DEVICE_MODAL.CONNECTED'
+                  'INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.LINK_DEVICE_MODAL.CONNECTED'
                 )
               }}
             </p>
@@ -138,7 +142,7 @@ watchEffect(() => {
               <Button ghost :is-loading="loading" @click="disconnect">
                 {{
                   $t(
-                    'INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_DEVICE_MODAL.DISCONNECT'
+                    'INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.LINK_DEVICE_MODAL.DISCONNECT'
                   )
                 }}
               </Button>

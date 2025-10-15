@@ -107,6 +107,9 @@ export default {
       if (this.isAWhatsAppBaileysChannel) {
         return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS');
       }
+      if (this.isAWhatsAppZapiChannel) {
+        return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI');
+      }
       return '';
     },
     tabs() {
@@ -157,7 +160,8 @@ export default {
         (this.isAnEmailChannel && !this.inbox.provider) ||
         this.shouldShowWhatsAppConfiguration ||
         this.isAWebWidgetInbox ||
-        this.isAWhatsAppBaileysChannel
+        this.isAWhatsAppBaileysChannel ||
+        this.isAWhatsAppZapiChannel
       ) {
         visibleToAllChannelTabs = [
           ...visibleToAllChannelTabs,

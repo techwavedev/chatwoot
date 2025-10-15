@@ -229,7 +229,9 @@
           "TWILIO_DESC": "Conectar através de credenciais Twilio",
           "360_DIALOG": "360Dialog",
           "BAILEYS": "Baileys",
-          "BAILEYS_DESC": "Conectar via API não-oficial Baileys"
+          "BAILEYS_DESC": "Conectar via API não-oficial Baileys",
+          "ZAPI": "Z-API",
+          "ZAPI_DESC": "Conectar via API não-oficial Z-API"
         },
         "SELECT_PROVIDER": {
           "TITLE": "Selecione seu provedor de API",
@@ -280,9 +282,24 @@
         "MARK_AS_READ": {
           "LABEL": "Enviar confirmações de leitura"
         },
+        "INSTANCE_ID": {
+          "LABEL": "ID da instância",
+          "PLACEHOLDER": "Por favor, insira o ID da sua instância",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "TOKEN": {
+          "LABEL": "Token",
+          "PLACEHOLDER": "Por favor, insira o Token da sua instância",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "CLIENT_TOKEN": {
+          "LABEL": "Token de Segurança",
+          "PLACEHOLDER": "Por favor, insira o Token de Segurança (veja a aba Segurança no painel do Z-API)",
+          "ERROR": "Este campo é obrigatório"
+        },
         "ADVANCED_OPTIONS": "Opções avançadas",
-        "BAILEYS": {
-          "SUBTITLE": "Clique abaixo para configurar o canal do WhatsApp usando o Baileys.",
+        "EXTERNAL_PROVIDER": {
+          "SUBTITLE": "Clique abaixo para configurar o canal do WhatsApp.",
           "LINK_BUTTON": "Conectar dispositivo",
           "LINK_DEVICE_MODAL": {
             "TITLE": "Conecte o seu dispositivo",
@@ -706,7 +723,17 @@
       "WHATSAPP_PROVIDER_URL_ERROR": "Por favor, insira uma URL válida",
       "WHATSAPP_MARK_AS_READ_TITLE": "Confirmações de leitura",
       "WHATSAPP_MARK_AS_READ_SUBHEADER": "Se essa opção estiver desativada, ao visualizar uma mensagem pelo Chatwoot, não será enviada uma confirmação de leitura para o remetente. As suas mensagens ainda poderão receber confirmações de leitura.",
-      "WHATSAPP_MARK_AS_READ_LABEL": "Enviar confirmações de leitura"
+      "WHATSAPP_MARK_AS_READ_LABEL": "Enviar confirmações de leitura",
+      "WHATSAPP_INSTANCE_ID_TITLE": "ID da Instância",
+      "WHATSAPP_INSTANCE_ID_SUBHEADER": "Seu ID da Instância Z-API.",
+      "WHATSAPP_TOKEN_TITLE": "Token",
+      "WHATSAPP_TOKEN_SUBHEADER": "Seu Token da Instância Z-API.",
+      "WHATSAPP_TOKEN_UPDATE_TITLE": "Atualizar Token",
+      "WHATSAPP_TOKEN_UPDATE_SUBHEADER": "Digite o novo Token aqui",
+      "WHATSAPP_CLIENT_TOKEN_TITLE": "Token de Segurança",
+      "WHATSAPP_CLIENT_TOKEN_SUBHEADER": "Seu Token de Segurança Z-API (veja a aba Segurança no painel do Z-API).",
+      "WHATSAPP_CLIENT_TOKEN_UPDATE_TITLE": "Atualizar Token de Segurança",
+      "WHATSAPP_CLIENT_TOKEN_UPDATE_SUBHEADER": "Digite o novo Token de Segurança aqui"
     },
     "HELP_CENTER": {
       "LABEL": "Centro de Ajuda",
@@ -968,6 +995,8 @@
       "TWITTER_PROFILE": "Twitter",
       "TWILIO_SMS": "SMS Twilio",
       "WHATSAPP": "WhatsApp",
+      "WHATSAPP_BAILEYS": "WhatsApp - Baileys",
+      "WHATSAPP_ZAPI": "WhatsApp - Z-API",
       "SMS": "SMS",
       "EMAIL": "e-mail",
       "TELEGRAM": "Telegram",

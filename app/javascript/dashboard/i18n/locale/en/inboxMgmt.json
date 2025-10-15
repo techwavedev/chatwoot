@@ -229,7 +229,9 @@
           "TWILIO_DESC": "Connect via Twilio credentials",
           "360_DIALOG": "360Dialog",
           "BAILEYS": "Baileys",
-          "BAILEYS_DESC": "Connect via non-official API Baileys"
+          "BAILEYS_DESC": "Connect via non-official API Baileys",
+          "ZAPI": "Z-API",
+          "ZAPI_DESC": "Connect via non-official API Z-API"
         },
         "SELECT_PROVIDER": {
           "TITLE": "Select your API provider",
@@ -280,9 +282,24 @@
         "MARK_AS_READ": {
           "LABEL": "Send read receipts"
         },
+        "INSTANCE_ID": {
+          "LABEL": "Instance ID",
+          "PLACEHOLDER": "Please enter your instance ID",
+          "ERROR": "This field is required"
+        },
+        "TOKEN": {
+          "LABEL": "Token",
+          "PLACEHOLDER": "Please enter your instance Token",
+          "ERROR": "This field is required"
+        },
+        "CLIENT_TOKEN": {
+          "LABEL": "Security Token",
+          "PLACEHOLDER": "Please enter your Security Token (see Security tab on Z-API dashboard)",
+          "ERROR": "This field is required"
+        },
         "ADVANCED_OPTIONS": "Advanced options",
-        "BAILEYS": {
-          "SUBTITLE": "Click below to setup the WhatsApp channel using Baileys.",
+        "EXTERNAL_PROVIDER": {
+          "SUBTITLE": "Click below to setup the WhatsApp channel.",
           "LINK_BUTTON": "Link device",
           "LINK_DEVICE_MODAL": {
             "TITLE": "Link your device",
@@ -707,7 +724,17 @@
       "UPDATE_PRE_CHAT_FORM_SETTINGS": "Update Pre Chat Form Settings",
       "WHATSAPP_MARK_AS_READ_TITLE": "Read receipts",
       "WHATSAPP_MARK_AS_READ_SUBHEADER": "If turned off, when a message is viewed in Chatwoot, a read receipt will not be sent to the sender. Your messages will still be able to receive read receipts from the sender.",
-      "WHATSAPP_MARK_AS_READ_LABEL": "Send read receipts"
+      "WHATSAPP_MARK_AS_READ_LABEL": "Send read receipts",
+      "WHATSAPP_INSTANCE_ID_TITLE": "Instance ID",
+      "WHATSAPP_INSTANCE_ID_SUBHEADER": "Your Z-API Instance ID.",
+      "WHATSAPP_TOKEN_TITLE": "Token",
+      "WHATSAPP_TOKEN_SUBHEADER": "Your Z-API instance Token.",
+      "WHATSAPP_TOKEN_UPDATE_TITLE": "Update Token",
+      "WHATSAPP_TOKEN_UPDATE_SUBHEADER": "Enter the new instance Token here",
+      "WHATSAPP_CLIENT_TOKEN_TITLE": "Security Token",
+      "WHATSAPP_CLIENT_TOKEN_SUBHEADER": "Your Z-API Client Token (see Security tab on Z-API dashboard).",
+      "WHATSAPP_CLIENT_TOKEN_UPDATE_TITLE": "Update Security Token",
+      "WHATSAPP_CLIENT_TOKEN_UPDATE_SUBHEADER": "Enter the new Security Token here"
     },
     "HELP_CENTER": {
       "LABEL": "Help Center",
@@ -969,6 +996,8 @@
       "TWITTER_PROFILE": "Twitter",
       "TWILIO_SMS": "Twilio SMS",
       "WHATSAPP": "WhatsApp",
+      "WHATSAPP_BAILEYS": "WhatsApp - Baileys",
+      "WHATSAPP_ZAPI": "WhatsApp - Z-API",
       "SMS": "SMS",
       "EMAIL": "Email",
       "TELEGRAM": "Telegram",

@@ -39,7 +39,7 @@ import { REPLY_POLICY } from 'shared/constants/links';
 import wootConstants from 'dashboard/constants/globals';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
-import WhatsappBaileysLinkDeviceModal from '../../../routes/dashboard/settings/inbox/components/WhatsappBaileysLinkDeviceModal.vue';
+import WhatsappLinkDeviceModal from '../../../routes/dashboard/settings/inbox/components/WhatsappLinkDeviceModal.vue';
 
 export default {
   components: {
@@ -48,7 +48,7 @@ export default {
     Banner,
     ConversationLabelSuggestion,
     Spinner,
-    WhatsappBaileysLinkDeviceModal,
+    WhatsappLinkDeviceModal,
   },
   mixins: [inboxMixin],
   setup() {
@@ -98,7 +98,7 @@ export default {
       isProgrammaticScroll: false,
       messageSentSinceOpened: false,
       labelSuggestions: [],
-      showBaileysLinkDeviceModal: false,
+      showLinkDeviceModal: false,
     };
   },
 
@@ -471,11 +471,11 @@ export default {
         return false;
       });
     },
-    onOpenBaileysLinkDeviceModal() {
-      this.showBaileysLinkDeviceModal = true;
+    onOpenLinkDeviceModal() {
+      this.showLinkDeviceModal = true;
     },
-    onCloseBaileysLinkDeviceModal() {
-      this.showBaileysLinkDeviceModal = false;
+    onCloseLinkDeviceModal() {
+      this.showLinkDeviceModal = false;
     },
     onSetupProviderConnection() {
       this.store
@@ -485,7 +485,7 @@ export default {
           console.error('Error setting up provider connection:', e);
           useAlert(
             this.$t(
-              'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.RECONNECT_FAILED'
+              'CONVERSATION.INBOX.WHATSAPP_PROVIDER_CONNECTION.RECONNECT_FAILED'
             )
           );
         });
@@ -496,11 +496,11 @@ export default {
 
 <template>
   <div class="flex flex-col justify-between flex-grow h-full min-w-0 m-0">
-    <template v-if="isAWhatsAppBaileysChannel">
-      <WhatsappBaileysLinkDeviceModal
-        v-if="showBaileysLinkDeviceModal"
-        :show="showBaileysLinkDeviceModal"
-        :on-close="onCloseBaileysLinkDeviceModal"
+    <template v-if="isAWhatsAppBaileysChannel || isAWhatsAppZapiChannel">
+      <WhatsappLinkDeviceModal
+        v-if="showLinkDeviceModal"
+        :show="showLinkDeviceModal"
+        :on-close="onCloseLinkDeviceModal"
         :inbox="currentInbox"
       />
       <Banner
@@ -510,23 +510,21 @@ export default {
         :banner-message="
           isAdmin
             ? $t(
-                'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.NOT_CONNECTED'
+                'CONVERSATION.INBOX.WHATSAPP_PROVIDER_CONNECTION.NOT_CONNECTED'
               )
             : $t(
-                'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.NOT_CONNECTED_CONTACT_ADMIN'
+                'CONVERSATION.INBOX.WHATSAPP_PROVIDER_CONNECTION.NOT_CONNECTED_CONTACT_ADMIN'
               )
         "
         has-action-button
         :action-button-label="
           isAdmin
-            ? $t(
-                'CONVERSATION.INBOX.WHATSAPP_BAILEYS_PROVIDER_CONNECTION.LINK_DEVICE'
-              )
+            ? $t('CONVERSATION.INBOX.WHATSAPP_PROVIDER_CONNECTION.LINK_DEVICE')
             : ''
         "
         :action-button-icon="isAdmin ? '' : 'i-lucide-refresh-cw'"
         @primary-action="
-          isAdmin ? onOpenBaileysLinkDeviceModal() : onSetupProviderConnection()
+          isAdmin ? onOpenLinkDeviceModal() : onSetupProviderConnection()
         "
       />
     </template>

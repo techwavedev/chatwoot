@@ -17,6 +17,7 @@ const props = defineProps({
   attachedFiles: { type: Array, default: () => [] },
   isWhatsappInbox: { type: Boolean, default: false },
   isWhatsappBaileysInbox: { type: Boolean, default: false },
+  isWhatsAppZapiInbox: { type: Boolean, default: false },
   isEmailOrWebWidgetInbox: { type: Boolean, default: false },
   isTwilioSmsInbox: { type: Boolean, default: false },
   isTwilioWhatsAppInbox: { type: Boolean, default: false },
@@ -80,7 +81,8 @@ const shouldShowEmojiButton = computed(() => {
 const isRegularMessageMode = computed(() => {
   return (
     (!props.isWhatsappInbox && !props.isTwilioWhatsAppInbox) ||
-    props.isWhatsappBaileysInbox
+    props.isWhatsappBaileysInbox ||
+    props.isWhatsAppZapiInbox
   );
 });
 

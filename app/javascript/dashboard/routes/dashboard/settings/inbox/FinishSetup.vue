@@ -7,7 +7,7 @@ import QRCode from 'qrcode';
 import EmptyState from '../../../../components/widgets/EmptyState.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import DuplicateInboxBanner from './channels/instagram/DuplicateInboxBanner.vue';
-import WhatsappBaileysLinkDeviceModal from './components/WhatsappBaileysLinkDeviceModal.vue';
+import WhatsappLinkDeviceModal from './components/WhatsappLinkDeviceModal.vue';
 import { useInbox } from 'dashboard/composables/useInbox';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
 
@@ -25,7 +25,7 @@ const currentInbox = computed(() =>
   store.getters['inboxes/getInbox'](route.params.inbox_id)
 );
 
-const showBaileysLinkDeviceModal = reactive({
+const showLinkDeviceModal = reactive({
   value: false,
 });
 
@@ -33,6 +33,7 @@ const showBaileysLinkDeviceModal = reactive({
 const {
   isAWhatsAppCloudChannel,
   isAWhatsAppBaileysChannel,
+  isAWhatsAppZapiChannel,
   isATwilioChannel,
   isASmsInbox,
   isALineChannel,
@@ -92,9 +93,9 @@ const message = computed(() => {
     )}`;
   }
 
-  if (isAWhatsAppBaileysChannel.value) {
+  if (isAWhatsAppBaileysChannel.value || isAWhatsAppZapiChannel.value) {
     return `${t('INBOX_MGMT.FINISH.MESSAGE')}. ${t(
-      'INBOX_MGMT.ADD.WHATSAPP.BAILEYS.SUBTITLE'
+      'INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.SUBTITLE'
     )}`;
   }
 
@@ -164,12 +165,12 @@ async function generateQRCodes() {
   }
 }
 
-const onOpenBaileysLinkDeviceModal = () => {
-  showBaileysLinkDeviceModal.value = true;
+const onOpenLinkDeviceModal = () => {
+  showLinkDeviceModal.value = true;
 };
 
-const onCloseBaileysLinkDeviceModal = () => {
-  showBaileysLinkDeviceModal.value = false;
+const onCloseLinkDeviceModal = () => {
+  showLinkDeviceModal.value = false;
 };
 
 // Watch for currentInbox changes and regenerate QR codes when available
@@ -234,11 +235,11 @@ onMounted(() => {
           />
         </div>
         <div
-          v-if="isAWhatsAppBaileysChannel"
+          v-if="isAWhatsAppBaileysChannel || isAWhatsAppZapiChannel"
           class="w-[50%] max-w-[50%] ml-[25%]"
         >
-          <NextButton @click="onOpenBaileysLinkDeviceModal">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.BAILEYS.LINK_BUTTON') }}
+          <NextButton @click="onOpenLinkDeviceModal">
+            {{ $t('INBOX_MGMT.ADD.WHATSAPP.EXTERNAL_PROVIDER.LINK_BUTTON') }}
           </NextButton>
         </div>
         <div class="w-[50%] max-w-[50%] ml-[25%]">
@@ -263,7 +264,10 @@ onMounted(() => {
         </div>
         <div
           v-if="
-            isAWhatsAppChannel && !isAWhatsAppBaileysChannel && qrCodes.whatsapp
+            isAWhatsAppChannel &&
+            !isAWhatsAppBaileysChannel &&
+            !isAWhatsAppZapiChannel &&
+            qrCodes.whatsapp
           "
           class="flex flex-col gap-3 items-center mt-8"
         >
@@ -337,10 +341,10 @@ onMounted(() => {
         </div>
       </div>
     </EmptyState>
-    <WhatsappBaileysLinkDeviceModal
-      v-if="showBaileysLinkDeviceModal.value"
-      :show="showBaileysLinkDeviceModal.value"
-      :on-close="onCloseBaileysLinkDeviceModal"
+    <WhatsappLinkDeviceModal
+      v-if="showLinkDeviceModal.value"
+      :show="showLinkDeviceModal.value"
+      :on-close="onCloseLinkDeviceModal"
       :inbox="currentInbox"
       is-setup
     />

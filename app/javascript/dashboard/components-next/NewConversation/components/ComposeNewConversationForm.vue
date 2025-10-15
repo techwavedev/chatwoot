@@ -69,6 +69,9 @@ const inboxTypes = computed(() => ({
   isWhatsappBaileys:
     props.targetInbox?.channelType === INBOX_TYPES.WHATSAPP &&
     props.targetInbox?.provider === 'baileys',
+  isWhatsappZapi:
+    props.targetInbox?.channelType === INBOX_TYPES.WHATSAPP &&
+    props.targetInbox?.provider === 'zapi',
   isWebWidget: props.targetInbox?.channelType === INBOX_TYPES.WEB,
   isApi: props.targetInbox?.channelType === INBOX_TYPES.API,
   isEmailOrWebWidget:
@@ -284,7 +287,9 @@ const handleSendTwilioMessage = async ({ message, templateParams }) => {
 
 const shouldShowMessageEditor = computed(() => {
   return (
-    (!inboxTypes.value.isWhatsapp || inboxTypes.value.isWhatsappBaileys) &&
+    (!inboxTypes.value.isWhatsapp ||
+      inboxTypes.value.isWhatsappBaileys ||
+      inboxTypes.value.isWhatsappZapi) &&
     !showNoInboxAlert.value &&
     !inboxTypes.value.isTwilioWhatsapp
   );
@@ -358,6 +363,7 @@ const shouldShowMessageEditor = computed(() => {
       :attached-files="state.attachedFiles"
       :is-whatsapp-inbox="inboxTypes.isWhatsapp"
       :is-whatsapp-baileys-inbox="inboxTypes.isWhatsappBaileys"
+      :is-whatsapp-zapi-inbox="inboxTypes.isWhatsappZapi"
       :is-email-or-web-widget-inbox="inboxTypes.isEmailOrWebWidget"
       :is-twilio-sms-inbox="inboxTypes.isTwilioSMS"
       :is-twilio-whats-app-inbox="inboxTypes.isTwilioWhatsapp"
