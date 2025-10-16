@@ -128,7 +128,8 @@ class Whatsapp::IncomingMessageBaseService
         io: attachment_file,
         filename: attachment_file.original_filename,
         content_type: attachment_file.content_type
-      }
+      },
+      meta: ({ is_recorded_audio: true } if attachment_payload[:voice])
     )
   end
 

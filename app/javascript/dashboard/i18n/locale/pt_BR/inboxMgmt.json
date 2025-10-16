@@ -229,7 +229,11 @@
           "WHATSAPP_CLOUD": "Cloud do WhatsApp",
           "WHATSAPP_CLOUD_DESC": "Configuração rápida via Meta",
           "TWILIO_DESC": "Conectar através de credenciais Twilio",
-          "360_DIALOG": "360Dialog"
+          "360_DIALOG": "360Dialog",
+          "BAILEYS": "Baileys",
+          "BAILEYS_DESC": "Conectar via API não-oficial Baileys",
+          "ZAPI": "Z-API",
+          "ZAPI_DESC": "Conectar via API não-oficial Z-API"
         },
         "SELECT_PROVIDER": {
           "TITLE": "Selecione seu provedor de API",
@@ -271,6 +275,43 @@
           "SUBTITLE": "Você deve configurar a URL do webhook e o token de verificação no portal do desenvolvedor do Facebook com os valores mostrados abaixo.",
           "WEBHOOK_URL": "URL do Webhook",
           "WEBHOOK_VERIFICATION_TOKEN": "Token de verificação Webhook"
+        },
+        "PROVIDER_URL": {
+          "LABEL": "URL do provedor",
+          "PLACEHOLDER": "Se o provedor não está rodando localmente, por favor, insira a URL do provedor",
+          "ERROR": "Por favor, insira uma URL válida"
+        },
+        "MARK_AS_READ": {
+          "LABEL": "Enviar confirmações de leitura"
+        },
+        "INSTANCE_ID": {
+          "LABEL": "ID da instância",
+          "PLACEHOLDER": "Por favor, insira o ID da sua instância",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "TOKEN": {
+          "LABEL": "Token",
+          "PLACEHOLDER": "Por favor, insira o Token da sua instância",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "CLIENT_TOKEN": {
+          "LABEL": "Token de Segurança",
+          "PLACEHOLDER": "Por favor, insira o Token de Segurança (veja a aba Segurança no painel do Z-API)",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "ADVANCED_OPTIONS": "Opções avançadas",
+        "EXTERNAL_PROVIDER": {
+          "SUBTITLE": "Clique abaixo para configurar o canal do WhatsApp.",
+          "LINK_BUTTON": "Conectar dispositivo",
+          "LINK_DEVICE_MODAL": {
+            "TITLE": "Conecte o seu dispositivo",
+            "SUBTITLE": "Escaneie o QR code para conectar seu dispositivo. Certifique-se de que o número de telefone esteja correto antes de escanear.",
+            "LOADING_QRCODE": "Carregando QR code...",
+            "RECONNECTING": "Conectando...",
+            "LINK_DEVICE": "Conectar dispositivo",
+            "DISCONNECT": "Desconectar",
+            "CONNECTED": "Seu dispositivo foi conectado com sucesso. Agora você pode começar a enviar e receber mensagens."
+          }
         },
         "SUBMIT_BUTTON": "Criar canal do WhatsApp",
         "EMBEDDED_SIGNUP": {
@@ -736,7 +777,27 @@
       "WHATSAPP_TEMPLATES_SYNC_SUBHEADER": "Sincronize manualmente os modelos de mensagens do WhatsApp para atualizar seus modelos disponíveis.",
       "WHATSAPP_TEMPLATES_SYNC_BUTTON": "Sincronizar Modelos",
       "WHATSAPP_TEMPLATES_SYNC_SUCCESS": "Sincronização de modelos iniciada com sucesso. Pode demorar alguns minutos para atualizar.",
-      "UPDATE_PRE_CHAT_FORM_SETTINGS": "Atualizar configurações do Formulário Pre Chat"
+      "UPDATE_PRE_CHAT_FORM_SETTINGS": "Atualizar configurações do Formulário Pre Chat",
+      "WHATSAPP_MANAGE_PROVIDER_CONNECTION_TITLE": "Gerenciar Conexão do Provedor",
+      "WHATSAPP_MANAGE_PROVIDER_CONNECTION_SUBHEADER": "Conecte o seu dispositivo e gerencie a conexão do provedor.",
+      "WHATSAPP_MANAGE_PROVIDER_CONNECTION_BUTTON": "Gerenciar conexão",
+      "WHATSAPP_PROVIDER_URL_TITLE": "URL do provedor",
+      "WHATSAPP_PROVIDER_URL_SUBHEADER": "Se o provedor não estiver rodando localmente, por favor, forneça a URL.",
+      "WHATSAPP_PROVIDER_URL_PLACEHOLDER": "Digite a URL do provedor",
+      "WHATSAPP_PROVIDER_URL_ERROR": "Por favor, insira uma URL válida",
+      "WHATSAPP_MARK_AS_READ_TITLE": "Confirmações de leitura",
+      "WHATSAPP_MARK_AS_READ_SUBHEADER": "Se essa opção estiver desativada, ao visualizar uma mensagem pelo Chatwoot, não será enviada uma confirmação de leitura para o remetente. As suas mensagens ainda poderão receber confirmações de leitura.",
+      "WHATSAPP_MARK_AS_READ_LABEL": "Enviar confirmações de leitura",
+      "WHATSAPP_INSTANCE_ID_TITLE": "ID da Instância",
+      "WHATSAPP_INSTANCE_ID_SUBHEADER": "Seu ID da Instância Z-API.",
+      "WHATSAPP_TOKEN_TITLE": "Token",
+      "WHATSAPP_TOKEN_SUBHEADER": "Seu Token da Instância Z-API.",
+      "WHATSAPP_TOKEN_UPDATE_TITLE": "Atualizar Token",
+      "WHATSAPP_TOKEN_UPDATE_SUBHEADER": "Digite o novo Token aqui",
+      "WHATSAPP_CLIENT_TOKEN_TITLE": "Token de Segurança",
+      "WHATSAPP_CLIENT_TOKEN_SUBHEADER": "Seu Token de Segurança Z-API (veja a aba Segurança no painel do Z-API).",
+      "WHATSAPP_CLIENT_TOKEN_UPDATE_TITLE": "Atualizar Token de Segurança",
+      "WHATSAPP_CLIENT_TOKEN_UPDATE_SUBHEADER": "Digite o novo Token de Segurança aqui"
     },
     "HELP_CENTER": {
       "LABEL": "Centro de Ajuda",
@@ -998,6 +1059,8 @@
       "TWITTER_PROFILE": "Twitter",
       "TWILIO_SMS": "SMS Twilio",
       "WHATSAPP": "WhatsApp",
+      "WHATSAPP_BAILEYS": "WhatsApp - Baileys",
+      "WHATSAPP_ZAPI": "WhatsApp - Z-API",
       "SMS": "SMS",
       "EMAIL": "e-mail",
       "TELEGRAM": "Telegram",

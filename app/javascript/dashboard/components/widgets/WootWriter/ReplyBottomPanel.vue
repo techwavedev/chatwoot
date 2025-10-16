@@ -348,7 +348,7 @@ export default {
         v-if="showMessageSignatureButton"
         v-tooltip.top-end="signatureToggleTooltip"
         icon="i-ph-signature"
-        slate
+        :color="sendWithSignature ? 'blue' : 'slate'"
         faded
         sm
         @click="toggleMessageSignature"

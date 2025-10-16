@@ -82,6 +82,8 @@ module Chatwoot
       # Store a per-row key reference to support future key rotation
       config.active_record.encryption.store_key_references = true
     end
+
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new($stdout) if defined?(Rails::Console)
   end
 
   def self.config

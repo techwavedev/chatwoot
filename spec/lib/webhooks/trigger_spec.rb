@@ -71,7 +71,7 @@ describe Webhooks::Trigger do
       let(:webhook_type) { :agent_bot_webhook }
 
       it 'reopens conversation and enqueues activity message if pending' do
-        conversation.update(status: :pending)
+        conversation.update!(status: :pending)
         payload = { event: 'message_created', conversation: { id: conversation.id }, id: message.id }
 
         expect(RestClient::Request).to receive(:execute)

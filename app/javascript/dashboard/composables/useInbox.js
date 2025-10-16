@@ -117,6 +117,20 @@ export const useInbox = (inboxId = null) => {
     );
   });
 
+  const isAWhatsAppBaileysChannel = computed(() => {
+    return (
+      channelType.value === INBOX_TYPES.WHATSAPP &&
+      whatsAppAPIProvider.value === 'baileys'
+    );
+  });
+
+  const isAWhatsAppZapiChannel = computed(() => {
+    return (
+      channelType.value === INBOX_TYPES.WHATSAPP &&
+      whatsAppAPIProvider.value === 'zapi'
+    );
+  });
+
   const isAWhatsAppChannel = computed(() => {
     return (
       channelType.value === INBOX_TYPES.WHATSAPP ||
@@ -147,6 +161,8 @@ export const useInbox = (inboxId = null) => {
     isATwilioWhatsAppChannel,
     isAWhatsAppCloudChannel,
     is360DialogWhatsAppChannel,
+    isAWhatsAppBaileysChannel,
+    isAWhatsAppZapiChannel,
     isAnEmailChannel,
     isAnInstagramChannel,
     isAVoiceChannel,

@@ -110,6 +110,12 @@ export default {
       if (this.isATwilioWhatsAppChannel) {
         return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO');
       }
+      if (this.isAWhatsAppBaileysChannel) {
+        return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS');
+      }
+      if (this.isAWhatsAppZapiChannel) {
+        return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI');
+      }
       return '';
     },
     tabs() {
@@ -159,7 +165,9 @@ export default {
         this.isAVoiceChannel ||
         (this.isAnEmailChannel && !this.inbox.provider) ||
         this.shouldShowWhatsAppConfiguration ||
-        this.isAWebWidgetInbox
+        this.isAWebWidgetInbox ||
+        this.isAWhatsAppBaileysChannel ||
+        this.isAWhatsAppZapiChannel
       ) {
         visibleToAllChannelTabs = [
           ...visibleToAllChannelTabs,

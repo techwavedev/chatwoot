@@ -7,10 +7,15 @@ import ThreeSixtyDialogWhatsapp from './360DialogWhatsapp.vue';
 import CloudWhatsapp from './CloudWhatsapp.vue';
 import WhatsappEmbeddedSignup from './WhatsappEmbeddedSignup.vue';
 import ChannelSelector from 'dashboard/components/ChannelSelector.vue';
+import BaileysWhatsapp from './BaileysWhatsapp.vue';
+import ZapiWhatsapp from './ZapiWhatsapp.vue';
+import { usePolicy } from 'dashboard/composables/usePolicy';
+import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
+const { isFeatureFlagEnabled } = usePolicy();
 
 const PROVIDER_TYPES = {
   WHATSAPP: 'whatsapp',
@@ -19,6 +24,8 @@ const PROVIDER_TYPES = {
   WHATSAPP_EMBEDDED: 'whatsapp_embedded',
   WHATSAPP_MANUAL: 'whatsapp_manual',
   THREE_SIXTY_DIALOG: '360dialog',
+  BAILEYS: 'baileys',
+  ZAPI: 'zapi',
 };
 
 const hasWhatsappAppId = computed(() => {
@@ -34,20 +41,39 @@ const showProviderSelection = computed(() => !selectedProvider.value);
 
 const showConfiguration = computed(() => Boolean(selectedProvider.value));
 
-const availableProviders = computed(() => [
-  {
-    key: PROVIDER_TYPES.WHATSAPP,
-    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD_DESC'),
-    icon: 'i-woot-whatsapp',
-  },
-  {
-    key: PROVIDER_TYPES.TWILIO,
-    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO_DESC'),
-    icon: 'i-woot-twilio',
-  },
-]);
+const availableProviders = computed(() => {
+  const providers = [
+    {
+      key: PROVIDER_TYPES.WHATSAPP,
+      title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD'),
+      description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD_DESC'),
+      icon: 'i-woot-whatsapp',
+    },
+    {
+      key: PROVIDER_TYPES.TWILIO,
+      title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO'),
+      description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO_DESC'),
+      icon: 'i-woot-twilio',
+    },
+    {
+      key: PROVIDER_TYPES.BAILEYS,
+      title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS'),
+      description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS_DESC'),
+      icon: 'i-woot-baileys',
+    },
+  ];
+
+  if (isFeatureFlagEnabled(FEATURE_FLAGS.CHANNEL_ZAPI)) {
+    providers.push({
+      key: PROVIDER_TYPES.ZAPI,
+      title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI'),
+      description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI_DESC'),
+      icon: 'i-woot-zapi',
+    });
+  }
+
+  return providers;
+});
 
 const selectProvider = providerValue => {
   router.push({
@@ -138,7 +164,13 @@ const handleManualLinkClick = () => {
         <ThreeSixtyDialogWhatsapp
           v-else-if="selectedProvider === PROVIDER_TYPES.THREE_SIXTY_DIALOG"
         />
-        <CloudWhatsapp v-else />
+        <CloudWhatsapp
+          v-else-if="selectedProvider === PROVIDER_TYPES.WHATSAPP"
+        />
+        <BaileysWhatsapp
+          v-else-if="selectedProvider === PROVIDER_TYPES.BAILEYS"
+        />
+        <ZapiWhatsapp v-else-if="selectedProvider === PROVIDER_TYPES.ZAPI" />
       </div>
     </div>
   </div>

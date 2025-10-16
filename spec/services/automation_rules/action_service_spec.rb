@@ -91,7 +91,7 @@ RSpec.describe AutomationRules::ActionService do
     describe '#perform with send_email_transcript action' do
       before do
         rule.actions << { action_name: 'send_email_transcript', action_params: ['contact@example.com, agent@example.com,agent1@example.com'] }
-        rule.save
+        rule.save!
       end
 
       it 'will send email to transcript to action params emails' do
@@ -107,7 +107,7 @@ RSpec.describe AutomationRules::ActionService do
 
       it 'will send email to transcript to contacts' do
         rule.actions = [{ action_name: 'send_email_transcript', action_params: ['{{contact.email}}'] }]
-        rule.save
+        rule.save!
 
         mailer = double
         allow(ConversationReplyMailer).to receive(:with).and_return(mailer)
@@ -121,7 +121,7 @@ RSpec.describe AutomationRules::ActionService do
     describe '#perform with add_label action' do
       before do
         rule.actions << { action_name: 'add_label', action_params: %w[bug feature] }
-        rule.save
+        rule.save!
       end
 
       it 'will add labels to conversation' do
@@ -141,7 +141,7 @@ RSpec.describe AutomationRules::ActionService do
       before do
         conversation.add_labels(%w[bug feature support])
         rule.actions << { action_name: 'remove_label', action_params: %w[bug feature] }
-        rule.save
+        rule.save!
       end
 
       it 'will remove specified labels from conversation' do

@@ -222,4 +222,6 @@
   chatwoot_internal: true
 - name: quoted_email_reply
   display_name: Quoted Email Reply
+- name: channel_zapi
+  display_name: Z-API Channel
   enabled: false

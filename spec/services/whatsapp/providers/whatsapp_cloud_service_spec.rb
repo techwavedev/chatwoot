@@ -312,4 +312,118 @@ describe Whatsapp::Providers::WhatsappCloudService do
       end
     end
   end
+
+  describe '#toggle_typing_status' do
+    let(:conversation) { create(:conversation) }
+
+    it 'calls messages endpoint with typing indicator for "conversation.typing_on"' do
+      stub_request(:post, 'https://graph.facebook.com/v23.0/123456789/messages')
+        .with(
+          body: {
+            messaging_product: 'whatsapp',
+            message_id: message.source_id,
+            status: 'read',
+            typing_indicator: { type: 'text' }
+          }.to_json
+        )
+        .to_return(status: 200, body: { success: true }.to_json, headers: response_headers)
+
+      expect(service.toggle_typing_status(Events::Types::CONVERSATION_TYPING_ON, last_message: message)).to be(true)
+    end
+
+    it 'calls messages endpoint with typing indicator for "conversation.recording"' do
+      stub_request(:post, 'https://graph.facebook.com/v23.0/123456789/messages')
+        .with(
+          body: {
+            messaging_product: 'whatsapp',
+            message_id: message.source_id,
+            status: 'read',
+            typing_indicator: { type: 'text' }
+          }.to_json
+        )
+        .to_return(status: 200, body: { success: true }.to_json, headers: response_headers)
+
+      expect(service.toggle_typing_status(Events::Types::CONVERSATION_RECORDING, last_message: message)).to be(true)
+    end
+
+    it 'does not call messages endpoint with typing indicator for "conversation.typing_off"' do
+      expect(service.toggle_typing_status(Events::Types::CONVERSATION_TYPING_OFF, last_message: message)).to be(false)
+    end
+
+    it 'logs error on failure' do
+      allow(Rails.logger).to receive(:error).with('Request failed')
+      stub_request(:post, 'https://graph.facebook.com/v23.0/123456789/messages')
+        .with(
+          body: {
+            messaging_product: 'whatsapp',
+            message_id: message.source_id,
+            status: 'read',
+            typing_indicator: { type: 'text' }
+          }.to_json
+        )
+        .to_return(status: 500, body: 'Request failed')
+
+      service.toggle_typing_status(Events::Types::CONVERSATION_TYPING_ON, last_message: message)
+
+      expect(Rails.logger).to have_received(:error)
+    end
+  end
+
+  describe '#read_messages' do
+    it 'calls messages endpoint to mark last message as read' do
+      stub_request(:post, 'https://graph.facebook.com/v23.0/123456789/messages')
+        .with(
+          body: {
+            messaging_product: 'whatsapp',
+            message_id: message.source_id,
+            status: 'read'
+          }.to_json
+        )
+        .to_return(status: 200, body: { success: true }.to_json, headers: response_headers)
+
+      messages = [create(:message), message]
+      expect(service.read_messages(messages)).to be(true)
+    end
+
+    it 'logs error on failure' do
+      allow(Rails.logger).to receive(:error).with('Request failed')
+      stub_request(:post, 'https://graph.facebook.com/v23.0/123456789/messages')
+        .with(
+          body: {
+            messaging_product: 'whatsapp',
+            message_id: message.source_id,
+            status: 'read'
+          }.to_json
+        )
+        .to_return(status: 500, body: 'Request failed')
+
+      service.read_messages([message])
+
+      expect(Rails.logger).to have_received(:error)
+    end
+  end
+
+  describe '#send_reaction_message' do
+    it 'calls messages endpoint to send reaction message' do
+      message_with_reaction = create(:message, message_type: :outgoing, content: '👍', conversation: conversation,
+                                               inbox: whatsapp_channel.inbox, content_attributes: { is_reaction: true, in_reply_to: message.id })
+
+      stub_request(:post, 'https://graph.facebook.com/v23.0/123456789/messages')
+        .with(
+          body: {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: '+123456789',
+            type: 'reaction',
+            reaction: {
+              message_id: message.source_id,
+              emoji: '👍'
+            }
+          }.to_json
+        )
+        .to_return(status: 200, body: whatsapp_response.to_json, headers: response_headers)
+
+      expect(service.send_message('+123456789', message_with_reaction)).to eq 'message_id'
+    end
+  end
 end
