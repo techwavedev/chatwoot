@@ -6,11 +6,12 @@ import ImapSettings from '../ImapSettings.vue';
 import SmtpSettings from '../SmtpSettings.vue';
 import { useVuelidate } from '@vuelidate/core';
 import NextButton from 'dashboard/components-next/button/Button.vue';
+import TextArea from 'next/textarea/TextArea.vue';
 import WhatsappReauthorize from '../channels/whatsapp/Reauthorize.vue';
+import { sanitizeAllowedDomains, isValidURL } from 'dashboard/helper/URLHelper';
 import { requiredIf } from '@vuelidate/validators';
-import { isValidURL } from '../../../../../helper/URLHelper';
 import WhatsappLinkDeviceModal from '../components/WhatsappLinkDeviceModal.vue';
-import InboxName from '../../../../../components/widgets/InboxName.vue';
+import InboxName from 'dashboard/components/widgets/InboxName.vue';
 import Switch from 'dashboard/components-next/switch/Switch.vue';
 
 export default {
@@ -19,6 +20,7 @@ export default {
     ImapSettings,
     SmtpSettings,
     NextButton,
+    TextArea,
     WhatsappReauthorize,
     WhatsappLinkDeviceModal,
     InboxName,
@@ -41,6 +43,8 @@ export default {
       whatsAppInboxAPIKey: '',
       isRequestingReauthorization: false,
       isSyncingTemplates: false,
+      allowedDomains: '',
+      isUpdatingAllowedDomains: false,
       baileysProviderUrl: '',
       showLinkDeviceModal: false,
       markAsRead: true,
@@ -82,6 +86,7 @@ export default {
   methods: {
     setDefaults() {
       this.hmacMandatory = this.inbox.hmac_mandatory || false;
+      this.allowedDomains = this.inbox.allowed_domains || '';
       this.baileysProviderUrl = this.inbox.provider_config?.provider_url ?? '';
       this.markAsRead = this.inbox.provider_config?.mark_as_read ?? true;
       this.zapiInstanceId = this.inbox.provider_config?.instance_id ?? '';
@@ -104,6 +109,28 @@ export default {
         useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
       } catch (error) {
         useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updateAllowedDomains() {
+      this.isUpdatingAllowedDomains = true;
+      const sanitizedAllowedDomains = sanitizeAllowedDomains(
+        this.allowedDomains
+      );
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            allowed_domains: sanitizedAllowedDomains,
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        this.allowedDomains = sanitizedAllowedDomains;
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      } finally {
+        this.isUpdatingAllowedDomains = false;
       }
     },
     async updateWhatsAppInboxAPIKey() {
@@ -287,6 +314,30 @@ export default {
           :codepen-title="`${inbox.name} - Chatwoot Widget Test`"
           enable-code-pen
         />
+      </SettingsSection>
+
+      <SettingsSection
+        :title="$t('INBOX_MGMT.SETTINGS_POPUP.ALLOWED_DOMAINS.TITLE')"
+        :sub-title="$t('INBOX_MGMT.SETTINGS_POPUP.ALLOWED_DOMAINS.SUBTITLE')"
+      >
+        <div class="flex flex-col w-full max-w-3xl gap-4">
+          <TextArea
+            v-model="allowedDomains"
+            :placeholder="
+              $t('INBOX_MGMT.SETTINGS_POPUP.ALLOWED_DOMAINS.PLACEHOLDER')
+            "
+            auto-height
+            min-height="8rem"
+            class="w-full"
+          />
+          <div>
+            <NextButton
+              :label="$t('INBOX_MGMT.SETTINGS_POPUP.UPDATE')"
+              :is-loading="isUpdatingAllowedDomains"
+              @click="updateAllowedDomains"
+            />
+          </div>
+        </div>
       </SettingsSection>
 
       <SettingsSection
