@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Build the base image first
+echo "Building chatwoot:development base image..."
+docker build -f docker/Dockerfile -t chatwoot:development .
+
+# Build the rest of the services
+echo "Building services..."
+docker-compose build
