@@ -39,6 +39,8 @@ To keep this fork up-to-date with upstream while preserving custom changes:
 | 2024-12-28 | `e03a042` | feat: Add script to automate Docker image and service builds | `bin/docker-build` | Simplify local development and build process. |
 | 2024-12-28 | `7abe9d7` | chore: update .gitignore to exclude .windsurf type files | `.gitignore` | Exclude IDE/editor specific files. |
 
+| 2024-12-28 | `N/A` | chore: Update local Docker setup | `docker-compose.yaml` | Changed host Postgres port to 5438 to avoid conflict. Set default POSTGRES_PASSWORD. |
+
 ## Moving Forward
 
 - **Before Committing**: Check if the change is specific to this fork or could be contributed upstream.
