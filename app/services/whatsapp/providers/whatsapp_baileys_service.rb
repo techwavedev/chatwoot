@@ -38,7 +38,8 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     )
 
     # WAHA returns 201 Created or 409 Conflict (if already exists)
-    return true if response.success? || response.code == 409
+    # WAHA Core returns 422 if 'default' session exists
+    return true if response.success? || response.code == 409 || response.code == 422
 
     Rails.logger.error "WAHA Session Setup Failed: #{response.body}"
     raise ProviderUnavailableError
@@ -182,5 +183,10 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   def unread_message(recipient_id, message); end
   def received_messages(recipient_id, messages); end
   def media_url(media_id); "" end
+
+  def process_response(response)
+    Rails.logger.error response.body unless response.success?
+    response.success?
+  end
 
 end

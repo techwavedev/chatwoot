@@ -10,6 +10,7 @@ services:
         EXECJS_RUNTIME: 'Node'
         RAILS_ENV: 'development'
         RAILS_SERVE_STATIC_FILES: 'false'
+        RAILS_MAX_THREADS: 15
     tty: true
     stdin_open: true
     image: chatwoot:development
