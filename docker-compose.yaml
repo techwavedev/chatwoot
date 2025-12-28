@@ -15,6 +15,16 @@ services:
     image: chatwoot:development
     env_file: .env
 
+  baileys:
+    image: devlikeapro/waha:latest
+    platform: linux/amd64
+    ports:
+      - "3000:3000"
+    environment:
+      - WHATSAPP_API_PORT=3000
+      - WHATSAPP_API_HOSTNAME=0.0.0.0
+    restart: always
+
   rails:
     <<: *base
     build:
