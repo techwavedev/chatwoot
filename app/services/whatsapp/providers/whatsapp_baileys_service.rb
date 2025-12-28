@@ -125,9 +125,13 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   # Other methods (stubbed or adapted)
   def validate_provider_config?
-    # Check if session exists or can be listed
-    response = HTTParty.get("#{provider_url}/api/sessions/#{session_name}", headers: api_headers)
-    response.success?
+    # Check connectivity and auth by listing sessions
+    response = HTTParty.get(
+      "#{provider_url}/api/sessions",
+      headers: api_headers
+    )
+
+    process_response(response)
   end
 
   def get_profile_pic(jid)
@@ -144,8 +148,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   # Helpers
   
   def session_name
-    # Use phone number as session name (common pattern)
-    whatsapp_channel.phone_number.delete('+')
+    'default'
+    # WAHA Core only supports 'default' session
+    # whatsapp_channel.phone_number.delete('+')
   end
 
   def provider_url

@@ -19,10 +19,11 @@ services:
     image: devlikeapro/waha:latest
     platform: linux/amd64
     ports:
-      - "3000:3000"
+      - "3025:3000"
     environment:
       - WHATSAPP_API_PORT=3000
       - WHATSAPP_API_HOSTNAME=0.0.0.0
+      - WAHA_API_KEY=test_api_key
     restart: always
 
   rails:
